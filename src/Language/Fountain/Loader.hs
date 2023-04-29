@@ -2,7 +2,6 @@
 module Language.Fountain.Loader where
 
 import Text.ParserCombinators.Parsec
-import Text.Parsec.Prim (ParsecT)
 
 import Language.Fountain.Grammar
 import Language.Fountain.Constraint
