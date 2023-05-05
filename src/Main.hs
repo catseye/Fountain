@@ -38,10 +38,11 @@ main = do
             let finalState = Parser.parseFrom grammar text
             putStrLn $ if (dumpState flags) then show finalState else formatParseResult $ Parser.obtainResult finalState
             exitWith $ either (\msg -> ExitFailure 1) (\remaining -> ExitSuccess) $ Parser.obtainResult finalState
-        ["generate", grammarFileName] -> do
+        ("generate":grammarFileName:initialParams) -> do
             grammar <- loadSource grammarFileName
             let grammar' = Preprocessor.preprocessGrammar grammar
-            let finalState = Generator.generateFrom grammar'
+            let initialState = Generator.constructState initialParams
+            let finalState = Generator.generateFrom grammar' initialState
             putStrLn $ if (dumpState flags) then show finalState else formatGenerateResult $ Generator.obtainResult finalState
             exitWith $ either (\msg -> ExitFailure 1) (\remaining -> ExitSuccess) $ Generator.obtainResult finalState
         _ -> do

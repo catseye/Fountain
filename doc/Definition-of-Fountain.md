@@ -23,6 +23,9 @@ The Tests
 
 ### Loading
 
+Note, these tests are testing the implementation, not the language.
+Ideally they should be moved out of here, into their own test suite.
+
     -> Tests for functionality "Load Fountain Grammar"
 
 Sequence.
@@ -51,6 +54,9 @@ Constraints.
 
 ### Preprocessing
 
+Note, these tests are testing the implementation, not the language.
+Ideally they should be moved out of here, into their own test suite.
+
     -> Tests for functionality "Preprocess Fountain Grammar"
 
 Sequence.
@@ -76,6 +82,8 @@ Repetition.
     ===> Grammar [(NT "Goal",Alt [Seq [Constraint (Arb (Var "n")),Constraint (UnifyConst (Var "a") 0),Loop (Alt [Seq [Term (T 'a'),Constraint (Inc (Var "a") 1)]]) [UnifyVar (Var "a") (Var "n"),UnifyConst (Var "b") 0],Loop (Alt [Seq [Term (T 'b'),Constraint (Inc (Var "b") 1)]]) [UnifyVar (Var "b") (Var "n"),UnifyConst (Var "c") 0],Loop (Alt [Seq [Term (T 'c'),Constraint (Inc (Var "c") 1)]]) [UnifyVar (Var "c") (Var "n")]]])]
 
 ### Parsing
+
+OK _now_ we get into testing the language.
 
     -> Tests for functionality "Parse using Fountain Grammar"
 

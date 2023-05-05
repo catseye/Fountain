@@ -1,4 +1,4 @@
-module Language.Fountain.Generator (generateFrom, obtainResult) where
+module Language.Fountain.Generator (constructState, generateFrom, obtainResult) where
 
 import Language.Fountain.Grammar
 import Language.Fountain.Constraint
@@ -93,8 +93,11 @@ applyConstraint (Dec v i) st =
     Just $ update (\i -> Just (i - 1)) v st
 
 
-generateFrom :: Grammar -> GenState
-generateFrom g = revgen $ gen g (Generating "" empty) (production (startSymbol g) g)
+constructState :: [String] -> GenState
+constructState _ = (Generating "" empty)  -- FIXME
+
+generateFrom :: Grammar -> GenState ->  GenState
+generateFrom g state = revgen $ gen g state (production (startSymbol g) g)
     where
         revgen (Generating s a) = Generating (reverse s) a
         revgen other = other
