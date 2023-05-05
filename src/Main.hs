@@ -57,7 +57,7 @@ loadSource fileName = do
             abortWith $ show error
 
 loadText fileName = do
-    handle <- openFile fileName ReadMode
+    handle <- if fileName == "--" then return stdin else openFile fileName ReadMode
     -- hSetEncoding handle utf8
     text <- hGetContents handle
     return text

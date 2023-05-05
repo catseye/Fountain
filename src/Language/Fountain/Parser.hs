@@ -10,7 +10,9 @@ data ParseState = Parsing String Store
     deriving (Show, Ord, Eq)
 
 
+expectTerminal :: Char -> ParseState -> ParseState
 expectTerminal tc (Parsing (c:cs) a) = if c == tc then (Parsing cs a) else Failure
+expectTerminal tc (Parsing [] a) = Failure
 expectTerminal tc Failure = Failure
 
 formatResult (Parsing "" _) = "Success"

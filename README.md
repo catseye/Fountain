@@ -55,10 +55,8 @@ For a fuller description of the Fountain language, see
 TODO
 ----
 
-*   Need to understand why the anbncn parser fails when given only "aaabbbccc" with no further characters.  (See test suite)
 *   Failure should produce nonzero exit code.
 *   Terminals should be multi-character in the syntax.
 *   Rename "arb" to "param" (?)
 *   Allow params to be supplied.
-*   `fountain parse` should be able to read the input string from stdin.
 *   Check constraints on all branches of an alternation.

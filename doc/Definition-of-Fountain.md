@@ -123,15 +123,15 @@ Repetition.
 
 ### Parsing with Constraints
 
-TODO: Understand why this needs a space afterwards.
+This one succeeds because it satisfies all constraints.
 
     Goal ::= <. arb n .>
          <. a = 0 .> { "a" <. a += 1 .> } <. a = n .>
          <. b = 0 .> { "b" <. b += 1 .> } <. b = n .>
          <. c = 0 .> { "c" <. c += 1 .> } <. c = n .>
          ;
-    <=== aaabbbccc 
-    ===> Remaining: " "
+    <=== aaabbbccc
+    ===> Success
 
 This one fails at the `<. b = n .>` constraint.
 
