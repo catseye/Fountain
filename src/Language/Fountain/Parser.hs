@@ -15,6 +15,7 @@ expectTerminal tc (Parsing (c:cs) a) = if c == tc then (Parsing cs a) else Failu
 expectTerminal tc (Parsing [] a) = Failure
 expectTerminal tc Failure = Failure
 
+obtainResult :: ParseState -> Either String String
 obtainResult (Parsing s _) = Right s
 obtainResult Failure = Left "failure"
 

@@ -169,3 +169,8 @@ Repetition.  Without constraints, this will error out.
 
     Goal ::= <. a = 0 .> { "a" <. a += 1 .> } <. a = 5 .>;
     ===> aaaaa
+
+Generation can also fail if constraints cannot be satisfied.
+
+    Goal ::= <. a = 0 .> "a" <. a = 2 .>;
+    ???> Failure

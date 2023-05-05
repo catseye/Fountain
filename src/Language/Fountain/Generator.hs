@@ -1,4 +1,4 @@
-module Language.Fountain.Generator (generateFrom, formatResult) where
+module Language.Fountain.Generator (generateFrom, obtainResult) where
 
 import Language.Fountain.Grammar
 import Language.Fountain.Constraint
@@ -12,7 +12,9 @@ data GenState = Generating String Store
 
 genTerminal c (Generating cs a) = (Generating (c:cs) a)
 
-formatResult (Generating s _) = s
+obtainResult :: GenState -> Either String String
+obtainResult (Generating s _) = Right s
+obtainResult Failure = Left "failure"
 
 
 gen :: Grammar -> GenState -> Expr -> GenState
@@ -95,3 +97,4 @@ generateFrom :: Grammar -> GenState
 generateFrom g = revgen $ gen g (Generating "" empty) (production (startSymbol g) g)
     where
         revgen (Generating s a) = Generating (reverse s) a
+        revgen other = other

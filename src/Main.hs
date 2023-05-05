@@ -41,8 +41,9 @@ main = do
         ["generate", grammarFileName] -> do
             grammar <- loadSource grammarFileName
             let grammar' = Preprocessor.preprocessGrammar grammar
-            let result = Generator.generateFrom grammar'
-            putStrLn $ if (dumpState flags) then show result else Generator.formatResult result
+            let finalState = Generator.generateFrom grammar'
+            putStrLn $ if (dumpState flags) then show finalState else formatGenerateResult $ Generator.obtainResult finalState
+            exitWith $ either (\msg -> ExitFailure 1) (\remaining -> ExitSuccess) $ Generator.obtainResult finalState
         _ -> do
             abortWith "Usage: fountain {flags} (load|preprocess|parse|generate) <input-filename> [<input-text>]"
 
@@ -70,3 +71,6 @@ abortWith msg = do
 formatParseResult (Right "") = "Success"
 formatParseResult (Right s) = "Remaining: " ++ (show s)
 formatParseResult (Left _) = "Failure"
+
+formatGenerateResult (Right s) = s
+formatGenerateResult (Left _) = "Failure"

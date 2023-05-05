@@ -55,14 +55,28 @@ For a fuller description of the Fountain language, see
 TODO
 ----
 
+### Syntax
+
 *   A syntax for comments.
 *   Terminals should be multi-character in the syntax.
 *   Rename "arb" to "param" (?)
-*   Allow params to be supplied on command line.
+*   Syntax for declaring global variables (with a type).
+
+### Semantics
+
+*   Require that variables be declared.  (Unless maybe operating in some cavalier mode)
 *   Check constraints on all branches of an alternation.
-*   Syntax for declaring global variables.
-*   Require that variables be declared.
-*   Allow variables to be declared with a type.
+
+### Implementation
+
+*   Allow params to be supplied on command line.
+*   Report error diagnostics (i.e. what caused a failure)
+
+### Documentation
+
+*   Design goals (talk about PSPACE, etc).
+*   Test cases for backtracking during parsing.
+*   Test cases for backtracking during generation.
 
 ### To think about
 
@@ -73,6 +87,9 @@ TODO
 
 ### Aspirational
 
+*   Write the "kennel story" generator in Fountain.  Show that
+    it can parse the same story it generated, in a reasonable
+    time, even up to 50,000 words.
 *   Use Fountain's own parsing facilities to parse the Fountain
     grammar description!  It's not entirely clear to me how much
     of it it could handle.  But it would be close to "writing
