@@ -85,8 +85,10 @@ applyConstraint (UnifyVar v w) st =
         (Nothing, Nothing) ->
             Just st
 applyConstraint (Arb v) st =
-    -- TODO not always 5 :)
-    Just $ insert v 5 st
+    -- The value should've already been set in the initial store.
+    case fetch v st of
+        Just value -> Just st
+        Nothing -> error ("The variable " ++ (show v) ++ " is unset")
 applyConstraint (Inc v i) st =
     Just $ update (\i -> Just (i + 1)) v st
 applyConstraint (Dec v i) st =

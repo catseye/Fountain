@@ -39,7 +39,7 @@ repetition construct `{ "a" <. a += 1 .> }` can "see" the
 following `a = n` constraint, will check it on each iteration,
 and will terminate when it is true.
 
-    % ./bin/fountain generate eg/anbncn.fountain
+    % ./bin/fountain generate eg/anbncn.fountain n=5
     aaaaabbbbbccccc
 
 Neither of the above processes involve backtracking; the string
@@ -88,10 +88,6 @@ TODO
 
 *   Require that variables be declared.  (Unless maybe operating in some cavalier mode)
 *   Check constraints on all branches of an alternation.
-
-### Implementation
-
-*   Allow params to be supplied on command line.
 
 ### Documentation
 

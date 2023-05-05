@@ -21,6 +21,9 @@ The Tests
     -> Functionality "Generate using Fountain Grammar" is implemented by
     -> shell command "bin/fountain generate %(test-body-file)"
 
+    -> Functionality "Generate using Fountain Grammar with input parameters" is implemented by
+    -> shell command "bin/fountain generate %(test-body-file) %(test-input-text)"
+
 ### Loading
 
 Note, these tests are testing the implementation, not the language.
@@ -175,6 +178,8 @@ Repetition.  Without constraints, this will error out.
 
 ### Generation with Constraints
 
+Basic constraint checking during generation of a repeated section.
+
     Goal ::= <. a = 0 .> { "a" <. a += 1 .> } <. a = 5 .>;
     ===> aaaaa
 
@@ -182,3 +187,24 @@ Generation can also fail if constraints cannot be satisfied.
 
     Goal ::= <. a = 0 .> "a" <. a = 2 .>;
     ???> Failure
+
+If an `arb` is encountered during generation, the value must have
+already been determined.
+
+    Goal ::= <. a = 0 .> "a" <. arb a .>;
+    ===> a
+
+    Goal ::= <. a = 0 .> "a" <. arb b .>;
+    ???> Var "b" is unset
+
+This prior determination may happen outside of the processing of
+the grammar proper.  The Fountain language does not prescribe
+exactly how this must happen.  But it is expected that one way
+is for these values to be provided as input, in much the same
+manner the grammar itself is provided as input.
+
+    -> Tests for functionality "Generate using Fountain Grammar with input parameters"
+
+    Goal ::= <. a = 0 .> "a" <. arb b .>;
+    <=== b=5
+    ===> a
