@@ -94,7 +94,7 @@ applyConstraint (Dec v i) st =
 
 
 constructState :: [String] -> GenState
-constructState _ = (Generating "" empty)  -- FIXME
+constructState initialParams = Generating "" (constructStore initialParams)
 
 generateFrom :: Grammar -> GenState ->  GenState
 generateFrom g state = revgen $ gen g state (production (startSymbol g) g)

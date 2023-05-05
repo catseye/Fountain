@@ -148,3 +148,7 @@ quotedString = do
 
 parseFountain :: String -> Either ParseError Grammar
 parseFountain text = parse fountain "" text
+
+parseConstConstraint :: String -> (Variable, Integer)
+parseConstConstraint text = case parse unifyConst "" text of
+    Right (UnifyConst v i) -> (v, i)
