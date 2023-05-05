@@ -30,7 +30,7 @@ value.  When `b = n` is later encountered, unification of `b`
 with `n` will take place; if `b` is some value other than `n`,
 the parse will fail.
 
-    % ./bin/fountain parse eg/anbncn.fountain anbncn.txt
+    % echo -n "aaabbbccc" | ./bin/fountain parse eg/anbncn.fountain --
     Success
 
 In comparison, during generation, `arb n` will cause `n` to take on
@@ -55,8 +55,25 @@ For a fuller description of the Fountain language, see
 TODO
 ----
 
-*   Failure should produce nonzero exit code.
+*   A syntax for comments.
 *   Terminals should be multi-character in the syntax.
 *   Rename "arb" to "param" (?)
-*   Allow params to be supplied.
+*   Allow params to be supplied on command line.
 *   Check constraints on all branches of an alternation.
+*   Syntax for declaring global variables.
+*   Require that variables be declared.
+*   Allow variables to be declared with a type.
+
+### To think about
+
+*   Will we want productions to have arguments and how would that work?
+*   Will we want productions to have local variables and how would that work?
+*   Will we want variables of string type?
+*   Will we want variables of "string produced by a certain production" type?
+
+### Aspirational
+
+*   Use Fountain's own parsing facilities to parse the Fountain
+    grammar description!  It's not entirely clear to me how much
+    of it it could handle.  But it would be close to "writing
+    Fountain in Fountain".

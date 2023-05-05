@@ -1,4 +1,4 @@
-module Language.Fountain.Parser (parseFrom, formatResult) where
+module Language.Fountain.Parser (parseFrom, obtainResult) where
 
 import Language.Fountain.Grammar
 import Language.Fountain.Constraint
@@ -15,9 +15,8 @@ expectTerminal tc (Parsing (c:cs) a) = if c == tc then (Parsing cs a) else Failu
 expectTerminal tc (Parsing [] a) = Failure
 expectTerminal tc Failure = Failure
 
-formatResult (Parsing "" _) = "Success"
-formatResult (Parsing s _) = "Remaining: " ++ (show s)
-formatResult Failure = "Failure"
+obtainResult (Parsing s _) = Right s
+obtainResult Failure = Left "failure"
 
 
 parse :: Grammar -> ParseState -> Expr -> ParseState

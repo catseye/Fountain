@@ -87,7 +87,7 @@ Sequence.
 
     Goal ::= "f" "o" "o";
     <=== fog
-    ===> Failure
+    ???> Failure
 
 Alternation and recursion.
 
@@ -97,7 +97,7 @@ Alternation and recursion.
 
     Goal ::= "(" Goal ")" | "0";
     <=== ()
-    ===> Failure
+    ???> Failure
 
     Goal ::= "(" Goal ")" | "0";
     <=== 0
@@ -119,7 +119,7 @@ Repetition.
 
     Goal ::= "(" {"0"} ")";
     <=== (00001)
-    ===> Failure
+    ???> Failure
 
 ### Parsing with Constraints
 
@@ -141,7 +141,7 @@ This one fails at the `<. b = n .>` constraint.
          <. c = 0 .> { "c" <. c += 1 .> } <. c = n .>
          ;
     <=== aaabbccc
-    ===> Failure
+    ???> Failure
 
 ### Generation
 

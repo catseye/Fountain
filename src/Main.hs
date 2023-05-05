@@ -35,8 +35,9 @@ main = do
         ["parse", grammarFileName, textFileName] -> do
             grammar <- loadSource grammarFileName
             text <- loadText textFileName
-            let result = Parser.parseFrom grammar text
-            putStrLn $ if (dumpState flags) then show result else Parser.formatResult result
+            let finalState = Parser.parseFrom grammar text
+            putStrLn $ if (dumpState flags) then show finalState else formatParseResult $ Parser.obtainResult finalState
+            exitWith $ either (\msg -> ExitFailure 1) (\remaining -> ExitSuccess) $ Parser.obtainResult finalState
         ["generate", grammarFileName] -> do
             grammar <- loadSource grammarFileName
             let grammar' = Preprocessor.preprocessGrammar grammar
@@ -65,3 +66,7 @@ loadText fileName = do
 abortWith msg = do
     hPutStrLn stderr msg
     exitWith $ ExitFailure 1
+
+formatParseResult (Right "") = "Success"
+formatParseResult (Right s) = "Remaining: " ++ (show s)
+formatParseResult (Left _) = "Failure"
