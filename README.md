@@ -1,14 +1,14 @@
 Fountain
 ========
 
-**Fountain** is a work-in-progress grammar formalism capable of expressing
-context-sensitive languages (CSLs) and supporting both efficient parsing
-_and_ efficient generation of sentential forms of those languages.
+Cat's Eye Technologies' **Fountain** is a grammar formalism capable of
+expressing context-sensitive languages (CSLs) and supporting both efficient
+parsing _and_ efficient generation of strings conforming to those languages.
 
-It does this by allowing semantic actions to be interspersed between
-the terms of a production rule.  Unlike the imperative semantic actions in a
-typical parser-generator (such as `yacc`) though, these actions are
-relational, and are also called _constraints_.  This situates Fountain
+It does this by allowing semantic actions to be inserted between the
+elements of a production rule.  Unlike the imperative semantic actions in a
+typical parser-generator (such as `yacc`) however, these actions are
+_relational_, and are also called _constraints_.  This situates Fountain
 closer to the Definite Clause Grammars (DCGs) or Attribute Grammars (AGs).
 
 To support efficient generation, the interspersed semantic actions
@@ -44,13 +44,35 @@ and will terminate when it is true.
 
 Neither of the above processes involve backtracking; the string
 is parsed or generated in linear time.  However, it is important to note
-that, while Fountain supports deterministic, it does not enforce it.
+that, while Fountain supports deterministic operation, it does not enforce it.
 It is possible to write Fountain grammars that lead to backtracking
 search, or even infinite loops during generation.  How best to handle
 these cases remains an open line of inquiry.
 
 For a fuller description of the Fountain language, see
  **[doc/Definition-of-Fountain.md](doc/Definition-of-Fountain.md)**.
+
+### Can't a Definite Clause Grammar (DCG) do this?
+
+It's true that DCGs have a simple relational definition that can be embedded
+in a logic (or relational) programming language such as Prolog (or miniKanren),
+and this directly executed.
+
+To the extent that the language supports querying the relation in both directions
+(miniKanren is stronger than Prolog in this regard), such a DCG can be used to
+both parse and generate strings of its language.
+
+However, resorting to nondeterministic search when processing in one of the
+directions, even when the other direction is deterministically processable,
+is seemingly inevitable.  Implementing nondeterministic search efficiently is
+well-understood to be extremely challenging.  It does not "scale up" well,
+and iterative approaches tend to yield the least interesting results first.
+
+There is ongoing research to implement more sophisticated search strategies in
+miniKanren that could be useful here.  But even where tuning the search is a
+possibility, there is a desire to have as clean a formulation as possible -- one
+that most resembles the most direct statement of the problem.  Fountain aims for
+having this sort of clean formulation.
 
 TODO
 ----
@@ -70,7 +92,6 @@ TODO
 ### Implementation
 
 *   Allow params to be supplied on command line.
-*   Report error diagnostics (i.e. what caused a failure)
 
 ### Documentation
 
@@ -84,6 +105,7 @@ TODO
 *   Will we want productions to have local variables and how would that work?
 *   Will we want variables of string type?
 *   Will we want variables of "string produced by a certain production" type?
+*   What other types might we want?  Lists and maps and sets seem likely.
 
 ### Aspirational
 
@@ -94,3 +116,6 @@ TODO
     grammar description!  It's not entirely clear to me how much
     of it it could handle.  But it would be close to "writing
     Fountain in Fountain".
+*   Report error diagnostics (i.e. what caused a failure).  My
+    concern is that this will make the structure of the
+    implementation more cloudy.
