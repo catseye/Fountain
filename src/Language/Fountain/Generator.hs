@@ -56,7 +56,7 @@ gen g state (Loop l postconditions) =
                 Nothing -> Nothing
                 Just st' -> checkLimit cs st'
 
-gen g st (Terminal s) = genTerminal (head s) st
+gen g st (Terminal c) = genTerminal c st
 gen g st (NonTerminal nt) = gen g st (production nt g)
 
 gen g st@(Generating text store) (Constraint cstr) =

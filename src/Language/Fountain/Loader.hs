@@ -83,7 +83,9 @@ variable = do
 
 terminal = do
     s <- quotedString
-    return $ Terminal s
+    case s of
+        [c] -> return $ Terminal $ c
+        _ -> return $ Seq $ map (\c -> Terminal c) s
 
 nonterminal = do
     s <- capWord

@@ -42,7 +42,7 @@ parse g st (Loop l _) = parseLoop g st l where
             Failure -> st
             st'     -> parseLoop g st' e
 
-parse g st (Terminal s) = expectTerminal (head s) st
+parse g st (Terminal c) = expectTerminal c st
 parse g st (NonTerminal nt) = parse g st (production nt g)
 
 parse g st@(Parsing text store) (Constraint cstr) =

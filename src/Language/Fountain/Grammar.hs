@@ -13,7 +13,7 @@ data Expr = Seq [Expr]
           -- itself.  This is to make the generator's job easier.
           --
           | Loop Expr [Constraint]
-          | Terminal String
+          | Terminal Char
           | NonTerminal NTName
           | Constraint Constraint
     deriving (Show, Ord, Eq)
