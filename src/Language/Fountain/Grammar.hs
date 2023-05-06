@@ -3,10 +3,7 @@ module Language.Fountain.Grammar where
 import Language.Fountain.Constraint
 
 
-data Term = T Char
-          | NT String
-    deriving (Show, Ord, Eq)
-
+type NTName = String
 
 data Expr = Seq [Expr]
           | Alt [Expr]
@@ -16,12 +13,13 @@ data Expr = Seq [Expr]
           -- itself.  This is to make the generator's job easier.
           --
           | Loop Expr [Constraint]
-          | Term Term
+          | Terminal String
+          | NonTerminal NTName
           | Constraint Constraint
     deriving (Show, Ord, Eq)
 
 
-data Grammar = Grammar [(Term, Expr)]
+data Grammar = Grammar [(NTName, Expr)]
     deriving (Show, Ord, Eq)
 
 startSymbol (Grammar ((term, _) : _)) = term

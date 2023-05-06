@@ -31,7 +31,7 @@ grammar describe the concrete structure of tokens.
                   | "-=" IntLit
                   | ">" IntLit
                   | "<" IntLit.
-    NonTerminal ::= <<alpha>><<alphanumeric>>*
+    NonTerminal ::= <<upper>><<alphanumeric>>*
     Terminal ::= <<">><<any>>+<<">>
 
 The Tests

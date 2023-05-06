@@ -12,8 +12,7 @@ fountain = do
     return (Grammar ps)
 
 prod = do
-    s <- capWord
-    let nt = NT s
+    nt <- capWord
     keyword "::="
     e <- expr0
     keyword ";"
@@ -84,11 +83,11 @@ variable = do
 
 terminal = do
     s <- quotedString
-    return $ Term $ T (head s)
+    return $ Terminal s
 
 nonterminal = do
     s <- capWord
-    return $ Term $ NT s
+    return $ NonTerminal s
 
 --
 -- Low level: Concrete things
