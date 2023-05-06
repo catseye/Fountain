@@ -74,6 +74,44 @@ possibility, there is a desire to have as clean a formulation as possible -- one
 that most resembles the most direct statement of the problem.  Fountain aims for
 having this sort of clean formulation.
 
+### Isn't this really a programming language?
+
+Fountain resides in the murky twilight beween programming language and
+grammar formalism, as all sufficiently powerful grammar formalisms must.
+
+Parsing a context-sensitive language is a PSPACE-complete problem, and
+being able to express all, and only, the context-sensitive languages is
+a design goal of Fountain (whether it achieves it perfectly or not).
+
+There are many problems that cannot be solved in PSPACE, for example
+computing the Ackermann function.  So Fountain is definitely not
+Turing-complete; you won't be able to write a Lisp interpreter in it.
+This distances it from previous experiments by Cat's Eye Technologies
+to design "grammar-like" programming languages, such as
+[Tamsin][] and [Tandem][], which were intended to be Turing-complete.
+
+At the same time, PSPACE is a huge computational class, one which is
+known to contain NP, and is thought to be quite a bit larger.
+NP-complete problems already are generally considered "intractable";
+so for all practical purposes, PSPACE ought to be ample.
+
+Preventing Fountain from expressing languages which are not
+context-sensitive is still an open line of inquiry.  Clearly we
+must disallow unrestricted recursion, but the best way of doing
+this is less clear.
+
+Even if we limit the recursion to well-founded recursion (such
+as found in [Exanoke][]), primitive recursive computations can
+still be expressed.  Primitive recursion is known to be able to
+solve any problem in NEXPTIME, which is not known to be equal to
+PSPACE, and is suspected to be larger.
+
+Forbidding recursion entirely will certainly prevent going outside
+of PSPACE.  But expressing grammatical things such as nesting
+structures with repetition alone would be inconvenient to the point
+of being obnoxious.  And we need to be careful to still allow all
+CSLs to be expressed, which might prove cumbersome to show.
+
 TODO
 ----
 
@@ -81,8 +119,7 @@ TODO
 
 *   A syntax for comments.
 *   Terminals should be multi-character in the syntax.
-*   Rename "arb" to "param" (?)
-*   Syntax for declaring global variables (with a type).
+*   Syntax for declaring global variables (with a type?).
 
 ### Semantics
 
@@ -135,3 +172,7 @@ specify what the spacing is every time the Space production is generated.
 *   Report error diagnostics (i.e. what caused a failure).  My
     concern is that this will make the structure of the
     implementation more cloudy.
+
+[Exanoke]: https://catseye.tc/node/Exanoke
+[Tamsin]: https://catseye.tc/node/Tamsin
+[Tandem]: https://catseye.tc/node/Tandem
