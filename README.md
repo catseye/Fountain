@@ -88,6 +88,21 @@ TODO
 
 *   Require that variables be declared.  (Unless maybe operating in some cavalier mode)
 *   Check constraints on all branches of an alternation.
+*   Allow local variables to be declared.
+*   Allow `arb` binding to have a default value, as this is possibly the only thing that makes sense for local variables.
+
+The last two items come from the following use case: say we want to parse any amounts
+of whitespace between tokens, but when generating, always generate a fixed amount of
+whitespace.  We can't do this with a global variable (because then we always have to
+have the _same_ amount of whitespace between any two tokens).  We want a local
+variable.  Moreover we always want to unify it with 1 when generating.
+
+So our "space" production looks something like:
+
+    Space ::= <. local n = 0 .> { " " <. n += 1 .> } <. arb n (1) .>
+
+The default could also be an expression based on globals.  Allowing the user to
+specify what the spacing is every time the Space production is generated.
 
 ### Documentation
 
@@ -98,13 +113,18 @@ TODO
 ### To think about
 
 *   Will we want productions to have arguments and how would that work?
-*   Will we want productions to have local variables and how would that work?
 *   Will we want variables of string type?
 *   Will we want variables of "string produced by a certain production" type?
 *   What other types might we want?  Lists and maps and sets seem likely.
 
 ### Aspirational
 
+*   Allow (pseudo)random numbers to be used in generation.
+    Probably we can have a built-in function that takes a seed a produces
+    the next pseudorandom number in the sequence.  And another function for
+    limiting that number to a desirable range (i.e. modulo).
+    The key here is that we must also be able to parse what we've
+    pseudo-randomly generated.
 *   Write the "kennel story" generator in Fountain.  Show that
     it can parse the same story it generated, in a reasonable
     time, even up to 50,000 words.
