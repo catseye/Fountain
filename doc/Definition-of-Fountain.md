@@ -60,6 +60,14 @@ Sequence.
     <=== fog
     ???> Failure
 
+    Goal ::= "foo";
+    <=== foom
+    ===> Remaining: "m"
+
+    Goal ::= "foo";
+    <=== fo
+    ???> Failure
+
 Alternation and recursion.
 
     Goal ::= "(" Goal ")" | "0";

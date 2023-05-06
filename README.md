@@ -120,7 +120,6 @@ TODO
 ### Syntax
 
 *   A syntax for comments.
-*   Terminals should be multi-character in the syntax.
 *   Syntax for declaring global variables (with a type?).
 
 ### Semantics
