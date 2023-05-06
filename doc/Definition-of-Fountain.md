@@ -176,3 +176,13 @@ manner the grammar itself is provided as input.
     Goal ::= <. a = 0 .> "a" <. arb b .>;
     <=== b=5
     ===> a
+
+Thus we can show the language previously parsed can also be generated.
+
+    Goal ::= <. arb n .>
+         <. a = 0 .> { "a" <. a += 1 .> } <. a = n .>
+         <. b = 0 .> { "b" <. b += 1 .> } <. b = n .>
+         <. c = 0 .> { "c" <. c += 1 .> } <. c = n .>
+         ;
+    <=== n=3
+    ===> aaabbbccc

@@ -142,9 +142,13 @@ So our "space" production looks something like:
 The default could also be an expression based on globals.  Allowing the user to
 specify what the spacing is every time the Space production is generated.
 
+### Implementation
+
+*   Allow params on command line when parsing, too.
+*   `roundtrip` command that generates then parses, to confirm correct operation.
+
 ### Documentation
 
-*   Design goals (talk about PSPACE, etc).
 *   Test cases for backtracking during parsing.
 *   Test cases for backtracking during generation.
 
