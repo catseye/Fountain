@@ -107,10 +107,12 @@ solve any problem in NEXPTIME, which is not known to be equal to
 PSPACE, and is suspected to be larger.
 
 Forbidding recursion entirely will certainly prevent going outside
-of PSPACE.  But expressing grammatical things such as nesting
-structures with repetition alone would be inconvenient to the point
-of being obnoxious.  And we need to be careful to still allow all
-CSLs to be expressed, which might prove cumbersome to show.
+of PSPACE -- so long as we also confirm that every instance of
+every repetition construct necessarily consumes one or more tokens
+from the input string.  But expressing grammatical structures such
+as nested parenthesis using repetition alone might be inconvenient
+to the point of being obnoxious.  And we need to be careful to still
+allow all CSLs to be expressed, which might prove cumbersome to show.
 
 TODO
 ----

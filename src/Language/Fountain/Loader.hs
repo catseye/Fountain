@@ -7,24 +7,6 @@ import Language.Fountain.Grammar
 import Language.Fountain.Constraint
 
 
--- Grammar ::= {Production}.
--- Production ::= NonTerminal "::=" {Expr0}.
--- Expr0 ::= Expr1 {"|" Expr1}.
--- Expr1 ::= Term {Term}.
--- Term  ::= "{" Expr0 "}"
---         | "(" Expr0 ")"
---         | "<." Constraint ".>"
---         | Terminal
---         | NonTerminal.
--- Constraint ::= Variable Constrainer.
--- Constrainer ::= "arb" Variable
---               | "=" (Variable | IntLit)
---               | "+=" IntLit
---               | "-=" IntLit
---               | ">" IntLit
---               | "<" IntLit.
-
-
 fountain = do
     ps <- many prod
     return (Grammar ps)

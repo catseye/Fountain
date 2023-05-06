@@ -6,14 +6,36 @@ This document defines the Fountain Grammar Formalism.
 It does this in part by test cases.  These test cases
 are written in Falderal format.
 
+Grammar of Fountain
+-------------------
+
+This grammar is written in EBNF.  Any amount of whitespace may occur
+between tokens (and for this purpose, comments count as whitespace).
+Some whitespace must appear between tokens if the tokens would otherwise
+be interpreted as a single token.  The bottommost productions in the
+grammar describe the concrete structure of tokens.
+
+    Grammar ::= {Production}.
+    Production ::= NonTerminal "::=" {Expr0}.
+    Expr0 ::= Expr1 {"|" Expr1}.
+    Expr1 ::= Term {Term}.
+    Term  ::= "{" Expr0 "}"
+            | "(" Expr0 ")"
+            | "<." Constraint ".>"
+            | Terminal
+            | NonTerminal.
+    Constraint ::= Variable Constrainer.
+    Constrainer ::= "arb" Variable
+                  | "=" (Variable | IntLit)
+                  | "+=" IntLit
+                  | "-=" IntLit
+                  | ">" IntLit
+                  | "<" IntLit.
+    NonTerminal ::= <<alpha>><<alphanumeric>>*
+    Terminal ::= <<">><<any>>+<<">>
+
 The Tests
 ---------
-
-    -> Functionality "Load Fountain Grammar" is implemented by
-    -> shell command "bin/fountain load %(test-body-file)"
-
-    -> Functionality "Preprocess Fountain Grammar" is implemented by
-    -> shell command "bin/fountain preprocess %(test-body-file)"
 
     -> Functionality "Parse using Fountain Grammar" is implemented by
     -> shell command "bin/fountain parse %(test-body-file) %(test-input-file)"
@@ -24,69 +46,7 @@ The Tests
     -> Functionality "Generate using Fountain Grammar with input parameters" is implemented by
     -> shell command "bin/fountain generate %(test-body-file) %(test-input-text)"
 
-### Loading
-
-Note, these tests are testing the implementation, not the language.
-Ideally they should be moved out of here, into their own test suite.
-
-    -> Tests for functionality "Load Fountain Grammar"
-
-Sequence.
-
-    Goal ::= "f" "o" "o";
-    ===> Grammar [(NT "Goal",Alt [Seq [Term (T 'f'),Term (T 'o'),Term (T 'o')]])]
-
-Alternation and recursion.
-
-    Goal ::= "(" Goal ")" | "0";
-    ===> Grammar [(NT "Goal",Alt [Seq [Term (T '('),Term (NT "Goal"),Term (T ')')],Seq [Term (T '0')]])]
-
-Repetition.
-
-    Goal ::= "(" {"0"} ")";
-    ===> Grammar [(NT "Goal",Alt [Seq [Term (T '('),Loop (Alt [Seq [Term (T '0')]]) [],Term (T ')')]])]
-
-Constraints.
-
-    Goal ::= <. arb n .>
-         <. a = 0 .> { "a" <. a += 1 .> } <. a = n .>
-         <. b = 0 .> { "b" <. b += 1 .> } <. b = n .>
-         <. c = 0 .> { "c" <. c += 1 .> } <. c = n .>
-         ;
-    ===> Grammar [(NT "Goal",Alt [Seq [Constraint (Arb (Var "n")),Constraint (UnifyConst (Var "a") 0),Loop (Alt [Seq [Term (T 'a'),Constraint (Inc (Var "a") 1)]]) [],Constraint (UnifyVar (Var "a") (Var "n")),Constraint (UnifyConst (Var "b") 0),Loop (Alt [Seq [Term (T 'b'),Constraint (Inc (Var "b") 1)]]) [],Constraint (UnifyVar (Var "b") (Var "n")),Constraint (UnifyConst (Var "c") 0),Loop (Alt [Seq [Term (T 'c'),Constraint (Inc (Var "c") 1)]]) [],Constraint (UnifyVar (Var "c") (Var "n"))]])]
-
-### Preprocessing
-
-Note, these tests are testing the implementation, not the language.
-Ideally they should be moved out of here, into their own test suite.
-
-    -> Tests for functionality "Preprocess Fountain Grammar"
-
-Sequence.
-
-    Goal ::= "f" "o" "o";
-    ===> Grammar [(NT "Goal",Alt [Seq [Term (T 'f'),Term (T 'o'),Term (T 'o')]])]
-
-Alternation and recursion.
-
-    Goal ::= "(" Goal ")" | "0";
-    ===> Grammar [(NT "Goal",Alt [Seq [Term (T '('),Term (NT "Goal"),Term (T ')')],Seq [Term (T '0')]])]
-
-Repetition.
-
-    Goal ::= "(" {"0"} ")";
-    ===> Grammar [(NT "Goal",Alt [Seq [Term (T '('),Loop (Alt [Seq [Term (T '0')]]) [],Term (T ')')]])]
-
-    Goal ::= <. arb n .>
-         <. a = 0 .> { "a" <. a += 1 .> } <. a = n .>
-         <. b = 0 .> { "b" <. b += 1 .> } <. b = n .>
-         <. c = 0 .> { "c" <. c += 1 .> } <. c = n .>
-         ;
-    ===> Grammar [(NT "Goal",Alt [Seq [Constraint (Arb (Var "n")),Constraint (UnifyConst (Var "a") 0),Loop (Alt [Seq [Term (T 'a'),Constraint (Inc (Var "a") 1)]]) [UnifyVar (Var "a") (Var "n"),UnifyConst (Var "b") 0],Loop (Alt [Seq [Term (T 'b'),Constraint (Inc (Var "b") 1)]]) [UnifyVar (Var "b") (Var "n"),UnifyConst (Var "c") 0],Loop (Alt [Seq [Term (T 'c'),Constraint (Inc (Var "c") 1)]]) [UnifyVar (Var "c") (Var "n")]]])]
-
 ### Parsing
-
-OK _now_ we get into testing the language.
 
     -> Tests for functionality "Parse using Fountain Grammar"
 
