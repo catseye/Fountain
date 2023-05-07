@@ -6,7 +6,6 @@ data Variable = Var String
 
 data Constraint = UnifyConst Variable Integer
                 | UnifyVar Variable Variable
-                | Arb Variable
                 | Inc Variable Integer
                 | Dec Variable Integer
                 | GreaterThan Variable Integer

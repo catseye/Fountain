@@ -25,8 +25,7 @@ grammar describe the concrete structure of tokens.
             | Terminal
             | NonTerminal.
     Constraint ::= Variable Constrainer.
-    Constrainer ::= "arb" Variable
-                  | "=" (Variable | IntLit)
+    Constrainer ::= "=" (Variable | IntLit)
                   | "+=" IntLit
                   | "-=" IntLit
                   | ">" IntLit
@@ -104,7 +103,7 @@ Repetition.
 
 This one succeeds because it satisfies all constraints.
 
-    Goal ::= <. arb n .>
+    Goal ::=
          <. a = 0 .> { "a" <. a += 1 .> } <. a = n .>
          <. b = 0 .> { "b" <. b += 1 .> } <. b = n .>
          <. c = 0 .> { "c" <. c += 1 .> } <. c = n .>
@@ -114,7 +113,7 @@ This one succeeds because it satisfies all constraints.
 
 This one fails at the `<. b = n .>` constraint.
 
-    Goal ::= <. arb n .>
+    Goal ::=
          <. a = 0 .> { "a" <. a += 1 .> } <. a = n .>
          <. b = 0 .> { "b" <. b += 1 .> } <. b = n .>
          <. c = 0 .> { "c" <. c += 1 .> } <. c = n .>
@@ -156,15 +155,6 @@ Generation can also fail if constraints cannot be satisfied.
     Goal ::= <. a = 0 .> "a" <. a = 2 .>;
     ???> Failure
 
-If an `arb` is encountered during generation, the value must have
-already been determined.
-
-    Goal ::= <. a = 0 .> "a" <. arb a .>;
-    ===> a
-
-    Goal ::= <. a = 0 .> "a" <. arb b .>;
-    ???> Var "b" is unset
-
 This prior determination may happen outside of the processing of
 the grammar proper.  The Fountain language does not prescribe
 exactly how this must happen.  But it is expected that one way
@@ -173,13 +163,13 @@ manner the grammar itself is provided as input.
 
     -> Tests for functionality "Generate using Fountain Grammar with input parameters"
 
-    Goal ::= <. a = 0 .> "a" <. arb b .>;
+    Goal ::= <. a = 0 .> "a";
     <=== b=5
     ===> a
 
 Thus we can show the language previously parsed can also be generated.
 
-    Goal ::= <. arb n .>
+    Goal ::=
          <. a = 0 .> { "a" <. a += 1 .> } <. a = n .>
          <. b = 0 .> { "b" <. b += 1 .> } <. b = n .>
          <. c = 0 .> { "c" <. c += 1 .> } <. c = n .>
