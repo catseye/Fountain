@@ -19,6 +19,16 @@ obtainResult :: ParseState -> Either String String
 obtainResult (Parsing s _) = Right s
 obtainResult Failure = Left "failure"
 
+updateStore [] [] sourceStore destStore = destStore
+updateStore (sourceKey:sourceKeys) (destKey:destKeys) sourceStore destStore =
+    -- Populate destKey in the new store with the value at sourceKey in the sourceStore
+    let
+        destStore' = case fetch sourceKey sourceStore of
+            Just val -> insert destKey val destStore
+            Nothing -> destStore
+    in
+        updateStore sourceKeys destKeys sourceStore destStore'
+
 
 parse :: Grammar -> ParseState -> Expr -> ParseState
 
