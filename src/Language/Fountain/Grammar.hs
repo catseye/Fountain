@@ -25,6 +25,6 @@ data Grammar = Grammar [(NTName, [Variable], Expr)]
 startSymbol (Grammar ((term, _, _) : _)) = term
 startSymbol (Grammar []) = error "No productions in grammar"
 
-production nt (Grammar ((term, locals, expr) : rest)) =
+production nt (Grammar ((term, formals, expr) : rest)) =
     if term == nt then expr else production nt (Grammar rest)
 production nt (Grammar []) = error ("Production '" ++ nt ++ "' not found")

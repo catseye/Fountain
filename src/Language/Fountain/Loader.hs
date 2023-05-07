@@ -13,16 +13,16 @@ fountain = do
 
 prod = do
     nt <- capWord
+    p <- option [] formals
     keyword "::="
-    l <- many local
     e <- expr0
     keyword ";"
-    return (nt, l, e)
+    return (nt, p, e)
 
-local = do
-    keyword "local"
-    v <- variable
-    keyword ":"
+formals = do
+    keyword "<"
+    v <- sepBy (variable) (keyword ",")
+    keyword ">"
     return v
 
 expr0 = do
@@ -103,7 +103,14 @@ terminal = do
 
 nonterminal = do
     s <- capWord
+    a <- option [] actuals
     return $ NonTerminal s
+
+actuals = do
+    keyword "<"
+    v <- sepBy (variable) (keyword ",")
+    keyword ">"
+    return v
 
 --
 -- Low level: Concrete things

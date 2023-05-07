@@ -16,22 +16,25 @@ be interpreted as a single token.  The bottommost productions in the
 grammar describe the concrete structure of tokens.
 
     Grammar ::= {Production}.
-    Production ::= NonTerminal "::=" {"local" Variable ":"} {Expr0}.
+    Production ::= NonTerminal [Formals] "::=" {Expr0}.
     Expr0 ::= Expr1 {"|" Expr1}.
     Expr1 ::= Term {Term}.
     Term  ::= "{" Expr0 "}"
             | "(" Expr0 ")"
             | "<." Constraint ".>"
             | Terminal
-            | NonTerminal.
+            | NonTerminal [Actuals].
+    Formals ::= "<" Variable {"," Variable} ">".
+    Actuals ::= "<" VarExpr {"," VarExpr} ">".
+    VarExpr ::= Variable | IntLit.
     Constraint ::= Variable Constrainer.
     Constrainer ::= "=" (Variable | IntLit)
                   | "+=" IntLit
                   | "-=" IntLit
                   | ">" IntLit
                   | "<" IntLit.
-    NonTerminal ::= <<upper>><<alphanumeric>>*
-    Terminal ::= <<">><<any>>+<<">>
+    NonTerminal ::= <<upper>><<alphanumeric>>*.
+    Terminal ::= <<">><<any except ">>+<<">>.
 
 The Tests
 ---------
@@ -121,20 +124,20 @@ This one fails at the `<. b = n .>` constraint.
     <=== aaabbccc
     ???> Failure
 
-### Parsing with local variables
+### Parsing with parameters
 
-    Goal ::= "Hi" Sp "there" Sp "world" "!";
-    Sp ::= local n: <. n = 0 .> { " " <. n += 1 .> } <. n > 0 .>;
+    Goal ::= "Hi" Sp<a> "there" Sp<b> "world" "!";
+    Sp<n> ::= <. n = 0 .> { " " <. n += 1 .> } <. n > 0 .>;
     <=== Hi there world!
     ===> Success
 
-    Goal ::= "Hi" Sp "there" Sp "world" "!";
-    Sp ::= local n: <. n = 0 .> { " " <. n += 1 .> } <. n > 0 .>;
+    Goal ::= "Hi" Sp<a> "there" Sp<b> "world" "!";
+    Sp<n> ::= <. n = 0 .> { " " <. n += 1 .> } <. n > 0 .>;
     <=== Hi     there  world!
     ===> Success
 
-    Goal ::= "Hi" Sp "there" Sp "world" "!";
-    Sp ::= local n: <. n = 0 .> { " " <. n += 1 .> } <. n > 0 .>;
+    Goal ::= "Hi" Sp<a> "there" Sp<b> "world" "!";
+    Sp<n> ::= <. n = 0 .> { " " <. n += 1 .> } <. n > 0 .>;
     <=== Hi   thereworld!
     ???> Failure
 
