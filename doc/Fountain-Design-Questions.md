@@ -29,7 +29,7 @@ It's true that every CSL can be described with a CSG -- in fact,
 the CSLs are defined as the languages accepted by CSGs.  However, the
 way that a CSG operates is very different from how Fountain operates.
 
-By CSG I'm referring to "Type-2" in the Chomsky hierarchy.  The grammars
+By CSG I'm referring to "Type-1" in the Chomsky hierarchy.  The grammars
 in the Chomsky hierarchy are basically string-rewriting systems.
 
 When context is involved in such a rewriting system, that context is

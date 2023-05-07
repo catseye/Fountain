@@ -95,7 +95,7 @@ specify what the spacing is every time the Space production is generated.
 ### Implementation
 
 *   Allow params on command line when parsing, too.
-*   `roundtrip` command that generates then parses, to confirm correct operation.
+*   `-n` option like `echo`, to not produce an EOL after the output when generating
 
 ### Documentation
 
