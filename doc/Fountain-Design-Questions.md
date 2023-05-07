@@ -148,6 +148,21 @@ as nested parenthesis using repetition alone might be inconvenient
 to the point of being obnoxious.  And we need to be careful to still
 allow all CSLs to be expressed, which might prove cumbersome to show.
 
+### Why would we want to support local variables?
+
+Say we want to parse any amounts of whitespace between tokens, but
+when generating, always generate a fixed amount of whitespace.  We
+can't do this with a global variable, because then we would always
+have to have the _same_ amount of whitespace between any two tokens.
+
+We want a local variable.  Moreover, we always want to unify it with
+1 when generating.
+
+We don't need to explicitly declare a local variable, we just start
+using it.  So our "space" production might look something like:
+
+    Space ::= <. n = 0 .> { " " <. n += 1 .> } <. n > 0 .>
+
 ### How do we implement parameter passing?
 
 All parameters are "reference parameters" in some sense (think Prolog).

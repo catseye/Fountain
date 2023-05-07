@@ -54,8 +54,8 @@ these cases remains an open line of inquiry.
 For a fuller description of the Fountain language, see
  **[doc/Definition-of-Fountain.md](doc/Definition-of-Fountain.md)**.
 
-See also **[doc/Fountain-Design-Questions.md](doc/Fountain-Design-Questions.md)** for many interesting
-questions that the design of Fountain raises, such as:
+See also **[doc/Fountain-Design-Questions.md](doc/Fountain-Design-Questions.md)**
+for many interesting questions that the design of Fountain raises, such as:
 
 *   Can't a Definite Clause Grammar (DCG) do what Fountain does?
 *   Doesn't a Context-Sensitive Grammar (CSG) do what Fountain does?
@@ -80,17 +80,6 @@ TODO
 *   Inc, dec, gt, lt, should take either a variable or an integer on the RHS.
     Really, the RHS could be some kind of simple expression probably.
 *   Check constraints on all branches of an alternation.
-*   Allow local variables to be declared.
-
-This last item comes from the following use case: say we want to parse any amounts
-of whitespace between tokens, but when generating, always generate a fixed amount of
-whitespace.  We can't do this with a global variable (because then we always have to
-have the _same_ amount of whitespace between any two tokens).  We want a local
-variable.  Moreover we always want to unify it with 1 when generating.
-
-So our "space" production looks something like:
-
-    Space ::= local n: <. n = 0 .> { " " <. n += 1 .> } <. n > 0 .>
 
 ### Implementation
 
@@ -104,7 +93,7 @@ So our "space" production looks something like:
 
 ### To think about
 
-*   Do we want to require global variables to be declared?  With types?
+*   When parameters are declared, do we also want to declare their types?
 *   Will we want productions to have arguments and how would that work?
 *   Will we want variables of string type?
 *   Will we want variables of "string produced by a certain production" type?
@@ -117,7 +106,9 @@ So our "space" production looks something like:
     the next pseudorandom number in the sequence.  And another function for
     limiting that number to a desirable range (i.e. modulo).
     The key here is that we must also be able to parse what we've
-    pseudo-randomly generated.
+    pseudo-randomly generated.  But, another major consideration is that
+    we don't _really_ want to thread this state through explicitly.  We'd
+    like it to be a bit tidier than that.
 *   Write the "kennel story" generator in Fountain.  Show that
     it can parse the same story it generated, in a reasonable
     time, even up to 50,000 words.
@@ -136,7 +127,8 @@ History
 
 0.2 refined some of the core ideas of Fountain.  The
 **[Fountain Design Questions](doc/Fountain-Design-Questions.md)**
-document was written.  Many small improvements were made to the
+document was written.  Parameter passing was added to
+productions.  Many small improvements were made to the
 reference implementation.
 
 0.1 had an `arb` construct, which was intended to signal that
