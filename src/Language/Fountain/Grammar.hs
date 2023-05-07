@@ -28,3 +28,7 @@ startSymbol (Grammar []) = error "No productions in grammar"
 production nt (Grammar ((term, formals, expr) : rest)) =
     if term == nt then expr else production nt (Grammar rest)
 production nt (Grammar []) = error ("Production '" ++ nt ++ "' not found")
+
+getFormals nt (Grammar ((term, formals, expr) : rest)) =
+    if term == nt then formals else getFormals nt (Grammar rest)
+getFormals nt (Grammar []) = error ("Production '" ++ nt ++ "' not found")

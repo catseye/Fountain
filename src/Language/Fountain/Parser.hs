@@ -44,10 +44,36 @@ parse g st (Loop l _) = parseLoop g st l where
 
 parse g st (Terminal c) = expectTerminal c st
 parse g st (NonTerminal nt actuals) =
-    let
-        st' = parse g st (production nt g)
-    in
-        st'
+    case st of
+        Parsing text store ->
+            let
+                formals = getFormals nt g
+                newStore = createNewStore formals actuals empty
+                st' = Parsing text newStore
+                expr' = production nt g
+            in
+                case parse g st' expr' of
+                    (Parsing text' store') ->
+                        -- TODO: reconcile
+                        Parsing text' store'
+                    Failure ->
+                        Failure
+            where
+                createNewStore [] [] newStore = newStore
+                createNewStore (f:fs) (a:as) newStore =
+                    -- Ultimately, `a` could be a variable or an integer.
+                    -- For now we assume variable, and we fetch its
+                    -- value (from the *original* store, above) to pass it in.
+                    case fetch a store of
+                        Just val ->
+                            let
+                                newStore' = insert f val newStore
+                            in
+                                createNewStore fs as newStore'
+                        Nothing ->
+                            createNewStore fs as newStore
+        Failure ->
+            Failure
 
 parse g st@(Parsing text store) (Constraint cstr) =
     case applyConstraint cstr store of
