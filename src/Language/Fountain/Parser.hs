@@ -53,17 +53,17 @@ parse g st (NonTerminal nt actuals) =
                 expr' = production nt g
             in
                 case parse g st' expr' of
-                    (Parsing text' store') ->
-                        -- TODO: reconcile
-                        Parsing text' store'
+                    (Parsing text' modifiedStore) ->
+                        let
+                            reconciledStore = reconcileStore formals actuals store modifiedStore
+                        in
+                            Parsing text' reconciledStore
                     Failure ->
                         Failure
             where
                 createNewStore [] [] newStore = newStore
                 createNewStore (f:fs) (a:as) newStore =
-                    -- Ultimately, `a` could be a variable or an integer.
-                    -- For now we assume variable, and we fetch its
-                    -- value (from the *original* store, above) to pass it in.
+                    -- Populate f in the new store with a's value in the existing store
                     case fetch a store of
                         Just val ->
                             let
@@ -72,6 +72,17 @@ parse g st (NonTerminal nt actuals) =
                                 createNewStore fs as newStore'
                         Nothing ->
                             createNewStore fs as newStore
+                reconcileStore [] [] store modifiedStore = store
+                reconcileStore (f:fs) (a:as) store modifiedStore =
+                    -- Alter a in the store with f's value in the modified store
+                    case fetch f modifiedStore of
+                        Just val ->
+                            let
+                                store' = update (\_ -> Just val) a store
+                            in
+                                reconcileStore fs as store' modifiedStore
+                        Nothing ->
+                            reconcileStore fs as store modifiedStore
         Failure ->
             Failure
 

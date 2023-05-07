@@ -26,7 +26,7 @@ grammar describe the concrete structure of tokens.
             | NonTerminal [Actuals].
     Formals ::= "<" Variable {"," Variable} ">".
     Actuals ::= "<" VarExpr {"," VarExpr} ">".
-    VarExpr ::= Variable | IntLit.
+    VarExpr ::= Variable.  -- TODO: In future this might be richer.
     Constraint ::= Variable Constrainer.
     Constrainer ::= "=" (Variable | IntLit)
                   | "+=" IntLit
