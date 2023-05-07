@@ -107,39 +107,56 @@ Repetition.
 This one succeeds because it satisfies all constraints.
 
     Goal ::=
-         <. a = 0 .> { "a" <. a += 1 .> } <. a = n .>
-         <. b = 0 .> { "b" <. b += 1 .> } <. b = n .>
-         <. c = 0 .> { "c" <. c += 1 .> } <. c = n .>
-         ;
+        <. a = 0 .> { "a" <. a += 1 .> } <. a = n .>
+        <. b = 0 .> { "b" <. b += 1 .> } <. b = n .>
+        <. c = 0 .> { "c" <. c += 1 .> } <. c = n .>
+        ;
     <=== aaabbbccc
     ===> Success
 
 This one fails at the `<. b = n .>` constraint.
 
     Goal ::=
-         <. a = 0 .> { "a" <. a += 1 .> } <. a = n .>
-         <. b = 0 .> { "b" <. b += 1 .> } <. b = n .>
-         <. c = 0 .> { "c" <. c += 1 .> } <. c = n .>
-         ;
+        <. a = 0 .> { "a" <. a += 1 .> } <. a = n .>
+        <. b = 0 .> { "b" <. b += 1 .> } <. b = n .>
+        <. c = 0 .> { "c" <. c += 1 .> } <. c = n .>
+        ;
     <=== aaabbccc
     ???> Failure
 
-### Parsing with parameters
+### Parsing with local variables
 
-    Goal ::= "Hi" Sp<a> "there" Sp<b> "world" "!";
-    Sp<n> ::= <. n = 0 .> { " " <. n += 1 .> } <. n > 0 .>;
+    Goal ::= "Hi" Sp "there" Sp "world" "!";
+    Sp ::= <. n = 0 .> { " " <. n += 1 .> } <. n > 0 .>;
     <=== Hi there world!
     ===> Success
 
-    Goal ::= "Hi" Sp<a> "there" Sp<b> "world" "!";
-    Sp<n> ::= <. n = 0 .> { " " <. n += 1 .> } <. n > 0 .>;
+    Goal ::= "Hi" Sp "there" Sp "world" "!";
+    Sp ::= <. n = 0 .> { " " <. n += 1 .> } <. n > 0 .>;
     <=== Hi     there  world!
     ===> Success
 
+### Parsing with parameters
+
+    Goal ::= "Hi" Sp<a> "there" Sp<a> "world" "!";
+    Sp<x> ::= <. n = 0 .> { " " <. n += 1 .> } <. n > 0 .> <. n = x .>;
+    <=== Hi there world!
+    ===> Success
+
+    Goal ::= "Hi" Sp<a> "there" Sp<a> "world" "!";
+    Sp<x> ::= <. n = 0 .> { " " <. n += 1 .> } <. n > 0 .> <. n = x .>;
+    <=== Hi   there   world!
+    ===> Success
+
+    Goal ::= "Hi" Sp<a> "there" Sp<a> "world" "!";
+    Sp<n> ::= <. n = 0 .> { " " <. n += 1 .> } <. n > 0 .>;
+    <=== Hi   there  world!
+    ???> Failure
+
     Goal ::= "Hi" Sp<a> "there" Sp<b> "world" "!";
     Sp<n> ::= <. n = 0 .> { " " <. n += 1 .> } <. n > 0 .>;
-    <=== Hi   thereworld!
-    ???> Failure
+    <=== Hi   there  world!
+    ===> Success
 
 ### Generation
 
@@ -196,3 +213,17 @@ Thus we can show the language previously parsed can also be generated.
          ;
     <=== n=3
     ===> aaabbbccc
+
+### Generation with local variables
+
+    Goal ::= "Hi" Sp "there" Sp "world" "!";
+    Sp ::= <. n = 0 .> { " " <. n += 1 .> } <. n > 0 .>;
+    <=== 
+    ===> Hi there world!
+
+### Generation with parameters
+
+    Goal ::= "Hi" Sp<a> "there" Sp<a> "world" "!";
+    Sp<x> ::= <. n = 0 .> { " " <. n += 1 .> } <. n > 0 .> <. n = x .>;
+    <=== a=3
+    ===> Hi   there   world!
