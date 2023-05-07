@@ -104,7 +104,7 @@ terminal = do
 nonterminal = do
     s <- capWord
     a <- option [] actuals
-    return $ NonTerminal s
+    return $ NonTerminal s a
 
 actuals = do
     keyword "<"

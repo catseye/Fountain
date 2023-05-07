@@ -14,7 +14,7 @@ data Expr = Seq [Expr]
           --
           | Loop Expr [Constraint]
           | Terminal Char
-          | NonTerminal NTName
+          | NonTerminal NTName [Variable]
           | Constraint Constraint
     deriving (Show, Ord, Eq)
 

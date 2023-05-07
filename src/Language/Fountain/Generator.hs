@@ -57,7 +57,9 @@ gen g state (Loop l postconditions) =
                 Just st' -> checkLimit cs st'
 
 gen g st (Terminal c) = genTerminal c st
-gen g st (NonTerminal nt) = gen g st (production nt g)
+gen g st (NonTerminal nt actuals) =
+    -- TODO fancy stuff with actuals vs nonterminals here
+    gen g st (production nt g)
 
 gen g st@(Generating text store) (Constraint cstr) =
     case applyConstraint cstr store of

@@ -49,7 +49,7 @@ parse g st (Loop l _) = parseLoop g st l where
             st'     -> parseLoop g st' e
 
 parse g st (Terminal c) = expectTerminal c st
-parse g st (NonTerminal nt) =
+parse g st (NonTerminal nt actuals) =
     let
         st' = newScope st
         st'' = parse g st (production nt g)
