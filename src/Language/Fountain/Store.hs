@@ -7,15 +7,18 @@ import Language.Fountain.Loader (parseConstConstraint)  -- FIXME an unfortunate 
 
 
 data Store = Store {
-    table :: Map.Map Variable Integer,
+    scopes :: [Map.Map Variable Integer],
     events :: [String]
   } deriving (Show, Ord, Eq)
 
 
-empty = Store{ table=Map.empty, events=[] }
-fetch k st = Map.lookup k (table st)
-insert k v st = st{ table=Map.insert k v (table st), events=("insert":events st) }
-update f k st = st{ table=Map.update f k (table st), events=("update":events st) }
+empty = Store{ scopes=[Map.empty], events=[] }
+fetch k st = Map.lookup k (head $ scopes st)
+insert k v st = st{ scopes=insertTop k v $ scopes st, events=("insert":events st) }
+update f k st = st{ scopes=updateTop f k $ scopes st, events=("update":events st) }
+
+insertTop k v (table:rest) = (Map.insert k v table:rest)
+updateTop f k (table:rest) = (Map.update f k table:rest)
 
 constructStore :: [String] -> Store
 constructStore [] = empty
