@@ -46,7 +46,7 @@ constraintExpr = do
     keyword ".>"
     return $ Constraint $ c
 
-constrainer = (try arb) <|> (try unifyConst) <|> (try unifyVar) <|> (try inc) <|> (try dec) -- <|> (try gt) <|> (try lt)
+constrainer = (try arb) <|> (try unifyConst) <|> (try unifyVar) <|> (try inc) <|> (try dec) <|> (try gt) <|> (try lt)
 
 arb = do
     keyword "arb"
@@ -76,6 +76,18 @@ dec = do
     keyword "-="
     n <- intlit
     return $ Dec v n
+
+gt = do
+    v <- variable
+    keyword ">"
+    n <- intlit
+    return $ GreaterThan v n
+
+lt = do
+    v <- variable
+    keyword "<"
+    n <- intlit
+    return $ LessThan v n
 
 variable = do
     s <- lowWord

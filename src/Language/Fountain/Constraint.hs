@@ -9,6 +9,6 @@ data Constraint = UnifyConst Variable Integer
                 | Arb Variable
                 | Inc Variable Integer
                 | Dec Variable Integer
-                | GT Variable Integer
-                | LT Variable Integer
+                | GreaterThan Variable Integer
+                | LessThan Variable Integer
     deriving (Show, Ord, Eq)

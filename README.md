@@ -74,6 +74,8 @@ TODO
 
 ### Semantics
 
+*   Inc, dec, gt, lt, should take either a variable or an integer on the RHS.
+    Really, the RHS could be some kind of simple expression probably.
 *   Require that variables be declared.  (Unless maybe operating in some cavalier mode)
 *   Check constraints on all branches of an alternation.
 *   Allow local variables to be declared.
