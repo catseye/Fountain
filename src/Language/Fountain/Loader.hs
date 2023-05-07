@@ -53,12 +53,7 @@ constraintExpr = do
     keyword ".>"
     return $ Constraint $ c
 
-constrainer = (try arb) <|> (try unifyConst) <|> (try unifyVar) <|> (try inc) <|> (try dec) <|> (try gt) <|> (try lt)
-
-arb = do
-    keyword "arb"
-    v <- variable
-    return $ Arb v
+constrainer = (try unifyConst) <|> (try unifyVar) <|> (try inc) <|> (try dec) <|> (try gt) <|> (try lt)
 
 unifyConst = do
     v <- variable

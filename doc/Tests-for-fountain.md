@@ -37,12 +37,12 @@ Repetition.
 
 Constraints.
 
-    Goal ::= <. arb n .>
+    Goal ::=
          <. a = 0 .> { "a" <. a += 1 .> } <. a = n .>
          <. b = 0 .> { "b" <. b += 1 .> } <. b = n .>
          <. c = 0 .> { "c" <. c += 1 .> } <. c = n .>
          ;
-    ===> Grammar [("Goal",[],Alt [Seq [Constraint (Arb (Var "n")),Constraint (UnifyConst (Var "a") 0),Loop (Alt [Seq [Terminal 'a',Constraint (Inc (Var "a") 1)]]) [],Constraint (UnifyVar (Var "a") (Var "n")),Constraint (UnifyConst (Var "b") 0),Loop (Alt [Seq [Terminal 'b',Constraint (Inc (Var "b") 1)]]) [],Constraint (UnifyVar (Var "b") (Var "n")),Constraint (UnifyConst (Var "c") 0),Loop (Alt [Seq [Terminal 'c',Constraint (Inc (Var "c") 1)]]) [],Constraint (UnifyVar (Var "c") (Var "n"))]])]
+    ===> Grammar [("Goal",[],Alt [Seq [Constraint (UnifyConst (Var "a") 0),Loop (Alt [Seq [Terminal 'a',Constraint (Inc (Var "a") 1)]]) [],Constraint (UnifyVar (Var "a") (Var "n")),Constraint (UnifyConst (Var "b") 0),Loop (Alt [Seq [Terminal 'b',Constraint (Inc (Var "b") 1)]]) [],Constraint (UnifyVar (Var "b") (Var "n")),Constraint (UnifyConst (Var "c") 0),Loop (Alt [Seq [Terminal 'c',Constraint (Inc (Var "c") 1)]]) [],Constraint (UnifyVar (Var "c") (Var "n"))]])]
 
 Locals and multiple productions.
 
@@ -69,9 +69,9 @@ Repetition.
     Goal ::= "(" {"0"} ")";
     ===> Grammar [("Goal",[],Alt [Seq [Terminal '(',Loop (Alt [Seq [Terminal '0']]) [],Terminal ')']])]
 
-    Goal ::= <. arb n .>
+    Goal ::=
          <. a = 0 .> { "a" <. a += 1 .> } <. a = n .>
          <. b = 0 .> { "b" <. b += 1 .> } <. b = n .>
          <. c = 0 .> { "c" <. c += 1 .> } <. c = n .>
          ;
-    ===> Grammar [("Goal",[],Alt [Seq [Constraint (Arb (Var "n")),Constraint (UnifyConst (Var "a") 0),Loop (Alt [Seq [Terminal 'a',Constraint (Inc (Var "a") 1)]]) [UnifyVar (Var "a") (Var "n"),UnifyConst (Var "b") 0],Loop (Alt [Seq [Terminal 'b',Constraint (Inc (Var "b") 1)]]) [UnifyVar (Var "b") (Var "n"),UnifyConst (Var "c") 0],Loop (Alt [Seq [Terminal 'c',Constraint (Inc (Var "c") 1)]]) [UnifyVar (Var "c") (Var "n")]]])]
+    ===> Grammar [("Goal",[],Alt [Seq [Constraint (UnifyConst (Var "a") 0),Loop (Alt [Seq [Terminal 'a',Constraint (Inc (Var "a") 1)]]) [UnifyVar (Var "a") (Var "n"),UnifyConst (Var "b") 0],Loop (Alt [Seq [Terminal 'b',Constraint (Inc (Var "b") 1)]]) [UnifyVar (Var "b") (Var "n"),UnifyConst (Var "c") 0],Loop (Alt [Seq [Terminal 'c',Constraint (Inc (Var "c") 1)]]) [UnifyVar (Var "c") (Var "n")]]])]

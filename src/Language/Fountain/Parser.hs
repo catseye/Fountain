@@ -81,7 +81,6 @@ applyConstraint (UnifyVar v w) st =
             Just $ insert v wValue st
         (Nothing, Nothing) ->
             Just st
-applyConstraint (Arb v) st = Just st
 applyConstraint (Inc v i) st =
     Just $ update (\i -> Just (i + 1)) v st
 applyConstraint (Dec v i) st =
