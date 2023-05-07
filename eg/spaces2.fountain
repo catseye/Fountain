@@ -1,5 +1,4 @@
-Goal ::= Sentence;
-Sentence ::=
+Goal ::=
     "The" Sp<s1> "quick" Sp<s2> "brown" Sp<s3> "fox" Sp<s4>
     "jumped" Sp<s5> "over" Sp<s6> "the" Sp<s7> "lazy" Sp<s8> "dog" "."
     ;

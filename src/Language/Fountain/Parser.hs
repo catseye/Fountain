@@ -43,48 +43,45 @@ parse g st (Loop l _) = parseLoop g st l where
             st'     -> parseLoop g st' e
 
 parse g st (Terminal c) = expectTerminal c st
-parse g st (NonTerminal nt actuals) =
-    case st of
-        Parsing text store ->
-            let
-                formals = getFormals nt g
-                newStore = createNewStore formals actuals empty
-                st' = Parsing text newStore
-                expr' = production nt g
-            in
-                case parse g st' expr' of
-                    (Parsing text' modifiedStore) ->
-                        let
-                            reconciledStore = reconcileStore formals actuals store modifiedStore
-                        in
-                            Parsing text' reconciledStore
-                    Failure ->
-                        Failure
-            where
-                createNewStore [] [] newStore = newStore
-                createNewStore (f:fs) (a:as) newStore =
-                    -- Populate f in the new store with a's value in the existing store
-                    case fetch a store of
-                        Just val ->
-                            let
-                                newStore' = insert f val newStore
-                            in
-                                createNewStore fs as newStore'
-                        Nothing ->
-                            createNewStore fs as newStore
-                reconcileStore [] [] store modifiedStore = store
-                reconcileStore (f:fs) (a:as) store modifiedStore =
-                    -- Alter a in the store with f's value in the modified store
-                    case fetch f modifiedStore of
-                        Just val ->
-                            let
-                                store' = insert a val store
-                            in
-                                reconcileStore fs as store' modifiedStore
-                        Nothing ->
-                            reconcileStore fs as store modifiedStore
-        Failure ->
-            Failure
+parse g Failure (NonTerminal nt actuals) = Failure
+parse g (Parsing text store) (NonTerminal nt actuals) =
+    let
+        formals = getFormals nt g
+        newStore = createNewStore formals actuals empty
+        st' = Parsing text newStore
+        expr' = production nt g
+    in
+        case parse g st' expr' of
+            (Parsing text' modifiedStore) ->
+                let
+                    reconciledStore = reconcileStore formals actuals store modifiedStore
+                in
+                    Parsing text' reconciledStore
+            Failure ->
+                Failure
+    where
+        createNewStore [] [] newStore = newStore
+        createNewStore (f:fs) (a:as) newStore =
+            -- Populate f in the new store with a's value in the existing store
+            case fetch a store of
+                Just val ->
+                    let
+                        newStore' = insert f val newStore
+                    in
+                        createNewStore fs as newStore'
+                Nothing ->
+                    createNewStore fs as newStore
+        reconcileStore [] [] store modifiedStore = store
+        reconcileStore (f:fs) (a:as) store modifiedStore =
+            -- Alter a in the store with f's value in the modified store
+            case fetch f modifiedStore of
+                Just val ->
+                    let
+                        store' = insert a val store
+                    in
+                        reconcileStore fs as store' modifiedStore
+                Nothing ->
+                    reconcileStore fs as store modifiedStore
 
 parse g st@(Parsing text store) (Constraint cstr) =
     case applyConstraint cstr store of
