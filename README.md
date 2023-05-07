@@ -52,67 +52,17 @@ these cases remains an open line of inquiry.
 For a fuller description of the Fountain language, see
  **[doc/Definition-of-Fountain.md](doc/Definition-of-Fountain.md)**.
 
-### Can't a Definite Clause Grammar (DCG) do this?
+See also the **[doc/Fountain-Design-Questions.md]()** for many interesting
+questions that the design of Fountain raises, such as:
 
-It's true that DCGs have a simple relational definition that can be embedded
-in a logic (or relational) programming language such as Prolog (or miniKanren),
-and this directly executed.
-
-To the extent that the language supports querying the relation in both directions
-(miniKanren is stronger than Prolog in this regard), such a DCG can be used to
-both parse and generate strings of its language.
-
-However, resorting to nondeterministic search when processing in one of the
-directions, even when the other direction is deterministically processable,
-is seemingly inevitable.  Implementing nondeterministic search efficiently is
-well-understood to be extremely challenging.  It does not "scale up" well,
-and iterative approaches tend to yield the least interesting results first.
-
-There is ongoing research to implement more sophisticated search strategies in
-miniKanren that could be useful here.  But even where tuning the search is a
-possibility, there is a desire to have as clean a formulation as possible -- one
-that most resembles the most direct statement of the problem.  Fountain aims for
-having this sort of clean formulation.
-
-### Isn't this really a programming language?
-
-Fountain resides in the murky twilight beween programming language and
-grammar formalism, as all sufficiently powerful grammar formalisms must.
-
-Parsing a context-sensitive language is a PSPACE-complete problem, and
-being able to express all, and only, the context-sensitive languages is
-a design goal of Fountain (whether it achieves it perfectly or not).
-
-There are many problems that cannot be solved in PSPACE, for example
-computing the Ackermann function.  So Fountain is definitely not
-Turing-complete; you won't be able to write a Lisp interpreter in it.
-This distances it from previous experiments by Cat's Eye Technologies
-to design "grammar-like" programming languages, such as
-[Tamsin][] and [Tandem][], which were intended to be Turing-complete.
-
-At the same time, PSPACE is a huge computational class, one which is
-known to contain NP, and is thought to be quite a bit larger.
-NP-complete problems already are generally considered "intractable";
-so for all practical purposes, PSPACE ought to be ample.
-
-Preventing Fountain from expressing languages which are not
-context-sensitive is still an open line of inquiry.  Clearly we
-must disallow unrestricted recursion, but the best way of doing
-this is less clear.
-
-Even if we limit the recursion to well-founded recursion (such
-as found in [Exanoke][]), primitive recursive computations can
-still be expressed.  Primitive recursion is known to be able to
-solve any problem in NEXPTIME, which is not known to be equal to
-PSPACE, and is suspected to be larger.
-
-Forbidding recursion entirely will certainly prevent going outside
-of PSPACE -- so long as we also confirm that every instance of
-every repetition construct necessarily consumes one or more tokens
-from the input string.  But expressing grammatical structures such
-as nested parenthesis using repetition alone might be inconvenient
-to the point of being obnoxious.  And we need to be careful to still
-allow all CSLs to be expressed, which might prove cumbersome to show.
+*   Can't a Definite Clause Grammar (DCG) do what Fountain does?
+*   Doesn't a Context-Sensitive Grammar (CSG) do what Fountain does?
+*   Isn't Fountain really a programming language in disguise?
+*   What complexity class does Fountain aim to capture?
+*   Is generating a string that is a member of a CSL also in PSPACE?
+*   How does Fountain ensure no Fountain program strays outside PSPACE?
+*   What if we restrict Fountain to well-founded recursion?
+*   What if we forbid recursion entirely?
 
 TODO
 ----
@@ -177,7 +127,3 @@ specify what the spacing is every time the Space production is generated.
 *   Report error diagnostics (i.e. what caused a failure).  My
     concern is that this will make the structure of the
     implementation more cloudy.
-
-[Exanoke]: https://catseye.tc/node/Exanoke
-[Tamsin]: https://catseye.tc/node/Tamsin
-[Tandem]: https://catseye.tc/node/Tandem
