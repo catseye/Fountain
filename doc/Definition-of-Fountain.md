@@ -122,6 +122,23 @@ This one fails at the `<. b = n .>` constraint.
     <=== aaabbccc
     ???> Failure
 
+### Parsing with local variables
+
+    Goal ::= "Hi" Sp "there" Sp "world" "!";
+    Sp ::= local n: <. n = 0 .> { " " <. n += 1 .> } <. n > 0 .>;
+    <=== Hi there world!
+    ===> Success
+
+    Goal ::= "Hi" Sp "there" Sp "world" "!";
+    Sp ::= local n: <. n = 0 .> { " " <. n += 1 .> } <. n > 0 .>;
+    <=== Hi     there  world!
+    ===> Success
+
+    Goal ::= "Hi" Sp "there" Sp "world" "!";
+    Sp ::= local n: <. n = 0 .> { " " <. n += 1 .> } <. n > 0 .>;
+    <=== Hi   thereworld!
+    ???> Failure
+
 ### Generation
 
     -> Tests for functionality "Generate using Fountain Grammar"

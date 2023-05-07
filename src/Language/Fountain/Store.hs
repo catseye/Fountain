@@ -24,6 +24,7 @@ fetch k st = lookup k $ scopes st where
 insert k v st = st{ scopes=insertTop k v $ scopes st, events=("insert":events st) }
     where insertTop k v (table:rest) = (Map.insert k v table:rest)
 
+-- TODO: this needs to update the layer where the variable is found
 update f k st = st{ scopes=updateTop f k $ scopes st, events=("update":events st) }
     where updateTop f k (table:rest) = (Map.update f k table:rest)
 

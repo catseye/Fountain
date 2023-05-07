@@ -23,6 +23,8 @@ data Grammar = Grammar [(NTName, [Variable], Expr)]
     deriving (Show, Ord, Eq)
 
 startSymbol (Grammar ((term, _, _) : _)) = term
+startSymbol (Grammar []) = error "No productions in grammar"
 
 production nt (Grammar ((term, locals, expr) : rest)) =
     if term == nt then expr else production nt (Grammar rest)
+production nt (Grammar []) = error ("Production '" ++ nt ++ "' not found")

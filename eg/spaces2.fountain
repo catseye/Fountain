@@ -1,6 +1,6 @@
-Goal ::= <. n = 0 .> Sentence;
+Goal ::= Sentence;
 Sentence ::=
     "The" Sp "quick" Sp "brown" Sp "fox" Sp
     "jumped" Sp "over" Sp "the" Sp "lazy" Sp "dog" "."
     ;
-Sp ::= { " " <. n += 1 .> } <. n > 0 .>;
+Sp ::= local n: { " " <. n += 1 .> } <. n > 0 .>;

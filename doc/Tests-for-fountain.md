@@ -44,6 +44,12 @@ Constraints.
          ;
     ===> Grammar [("Goal",[],Alt [Seq [Constraint (Arb (Var "n")),Constraint (UnifyConst (Var "a") 0),Loop (Alt [Seq [Terminal 'a',Constraint (Inc (Var "a") 1)]]) [],Constraint (UnifyVar (Var "a") (Var "n")),Constraint (UnifyConst (Var "b") 0),Loop (Alt [Seq [Terminal 'b',Constraint (Inc (Var "b") 1)]]) [],Constraint (UnifyVar (Var "b") (Var "n")),Constraint (UnifyConst (Var "c") 0),Loop (Alt [Seq [Terminal 'c',Constraint (Inc (Var "c") 1)]]) [],Constraint (UnifyVar (Var "c") (Var "n"))]])]
 
+Locals and multiple productions.
+
+    Goal ::= "Hi" Sp "there" Sp "!";
+    Sp ::= local n: { " " <. n += 1 .> } <. n > 0 .>;
+    ===> Grammar [("Goal",[],Alt [Seq [Seq [Terminal 'H',Terminal 'i'],NonTerminal "Sp",Seq [Terminal 't',Terminal 'h',Terminal 'e',Terminal 'r',Terminal 'e'],NonTerminal "Sp",Terminal '!']]),("Sp",[Var "n"],Alt [Seq [Loop (Alt [Seq [Terminal ' ',Constraint (Inc (Var "n") 1)]]) [],Constraint (GreaterThan (Var "n") 0)]])]
+
 ### Preprocessing
 
     -> Tests for functionality "Preprocess Fountain Grammar"
