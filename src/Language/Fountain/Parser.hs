@@ -52,7 +52,7 @@ parse g (Parsing text store) (NonTerminal nt actuals) =
         expr' = production nt g
     in
         case parse g st' expr' of
-            (Parsing text' modifiedStore) ->
+            Parsing text' modifiedStore ->
                 let
                     reconciledStore = updateStore formals actuals modifiedStore store
                 in

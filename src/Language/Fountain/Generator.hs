@@ -57,9 +57,22 @@ gen g state (Loop l postconditions) =
                 Just st' -> checkLimit cs st'
 
 gen g st (Terminal c) = genTerminal c st
-gen g st (NonTerminal nt actuals) =
-    -- TODO fancy stuff with actuals vs nonterminals here
-    gen g st (production nt g)
+gen g Failure (NonTerminal nt actuals) = Failure
+gen g (Generating text store) (NonTerminal nt actuals) =
+    let
+        formals = getFormals nt g
+        newStore = updateStore actuals formals store empty
+        st' = Generating text newStore
+        expr' = production nt g
+    in
+        case gen g st' expr' of
+            Generating text' modifiedStore ->
+                let
+                    reconciledStore = updateStore formals actuals modifiedStore store
+                in
+                    Generating text' reconciledStore
+            Failure ->
+                Failure
 
 gen g st@(Generating text store) (Constraint cstr) =
     case applyConstraint cstr store of
