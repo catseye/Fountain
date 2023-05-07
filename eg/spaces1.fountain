@@ -1,0 +1,2 @@
+Goal ::= "Hi" Spaces "there" "!";
+Spaces ::= <. n = 0 .> { " " <. n += 1 .> } <. n > 0 .>;
