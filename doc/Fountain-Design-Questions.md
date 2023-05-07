@@ -148,6 +148,40 @@ as nested parenthesis using repetition alone might be inconvenient
 to the point of being obnoxious.  And we need to be careful to still
 allow all CSLs to be expressed, which might prove cumbersome to show.
 
+### How do we implement parameter passing?
+
+All parameters are "reference parameters" in some sense (think Prolog).
+
+All productions only have access to their own parameters -- there are
+no global variables.
+
+When we encounter a nonterminal (during, let's say, parsing), we need
+to
+
+*   Save our current store somewhere.  Doesn't have to be in the
+    parsing state.  Though we could just keep a copy of the parsing
+    state.
+*   Create a new store for the nonterminal we're descending into.
+*   Look at the formals of the nonterminal we're descending into.
+*   For each of these formals, see if we have an actual that gives
+    it a value.  If we do, give it that value in the new store.
+*   It's important we let some formals stay undefined though, as
+    the nonterminal we're descending into might assign them and
+    pass them back up as "output parameters".
+*   Create a new copy of the parsing state that has our new store.
+*   Parse the nonterminal with it.  The result will be a new
+    parsing state.
+*   Reconcile the new parsing state and the saved parsing state.
+    We use everything from the new parsing state unchanged,
+    except for the store.  The store, we reconcile with our
+    saved store.
+*   What does "reconcile" mean?  For every formal that (now)
+    has a value in our new parsing state, unify it with the
+    actual that we used to populate the formal.  This will
+    result in a new store where the actuals may be associated
+    with values different than what they were.  Use this new store
+    in the new parsing state.
+
 [Exanoke]: https://catseye.tc/node/Exanoke
 [Tamsin]: https://catseye.tc/node/Tamsin
 [Tandem]: https://catseye.tc/node/Tandem
