@@ -78,7 +78,7 @@ parse g st (NonTerminal nt actuals) =
                     case fetch f modifiedStore of
                         Just val ->
                             let
-                                store' = update (\_ -> Just val) a store
+                                store' = insert a val store
                             in
                                 reconcileStore fs as store' modifiedStore
                         Nothing ->
