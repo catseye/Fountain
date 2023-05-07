@@ -7,29 +7,15 @@ import Language.Fountain.Loader (parseConstConstraint)  -- FIXME an unfortunate 
 
 
 data Store = Store {
-    scopes :: [Map.Map Variable Integer],
+    table :: Map.Map Variable Integer,
     events :: [String]
   } deriving (Show, Ord, Eq)
 
 
-empty = Store{ scopes=[Map.empty], events=[] }
-
-fetch k st = lookup k $ scopes st where
-    lookup k [] = Nothing
-    lookup k (table:rest) =
-        case Map.lookup k table of
-            Just v -> Just v
-            Nothing -> lookup k rest
-
-insert k v st = st{ scopes=insertTop k v $ scopes st, events=("insert":events st) }
-    where insertTop k v (table:rest) = (Map.insert k v table:rest)
-
--- TODO: this needs to update the layer where the variable is found
-update f k st = st{ scopes=updateTop f k $ scopes st, events=("update":events st) }
-    where updateTop f k (table:rest) = (Map.update f k table:rest)
-
-pushScope st = st{ scopes=(Map.empty:scopes st) }
-popScope st = st{ scopes=tail $ scopes st }
+empty = Store{ table=Map.empty, events=[] }
+fetch k st = Map.lookup k (table st)
+insert k v st = st{ table=Map.insert k v (table st), events=("insert":events st) }
+update f k st = st{ table=Map.update f k (table st), events=("update":events st) }
 
 constructStore :: [String] -> Store
 constructStore [] = empty

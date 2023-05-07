@@ -9,12 +9,6 @@ data ParseState = Parsing String Store
                 | Failure
     deriving (Show, Ord, Eq)
 
-newScope (Parsing s st) = Parsing s (pushScope st)
-newScope other = other
-
-discardScope (Parsing s st) = Parsing s (popScope st)
-discardScope other = other
-
 
 expectTerminal :: Char -> ParseState -> ParseState
 expectTerminal tc (Parsing (c:cs) a) = if c == tc then (Parsing cs a) else Failure
@@ -51,11 +45,9 @@ parse g st (Loop l _) = parseLoop g st l where
 parse g st (Terminal c) = expectTerminal c st
 parse g st (NonTerminal nt actuals) =
     let
-        st' = newScope st
-        st'' = parse g st (production nt g)
-        st''' = discardScope st''
+        st' = parse g st (production nt g)
     in
-        st'''
+        st'
 
 parse g st@(Parsing text store) (Constraint cstr) =
     case applyConstraint cstr store of
