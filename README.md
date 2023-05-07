@@ -88,7 +88,7 @@ variable.  Moreover we always want to unify it with 1 when generating.
 
 So our "space" production looks something like:
 
-    Space ::= <. local n = 0 .> { " " <. n += 1 .> } <. n > 0 .>
+    Space ::= local n: <. n = 0 .> { " " <. n += 1 .> } <. n > 0 .>
 
 ### Implementation
 

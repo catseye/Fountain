@@ -19,10 +19,10 @@ data Expr = Seq [Expr]
     deriving (Show, Ord, Eq)
 
 
-data Grammar = Grammar [(NTName, Expr)]
+data Grammar = Grammar [(NTName, [Variable], Expr)]
     deriving (Show, Ord, Eq)
 
-startSymbol (Grammar ((term, _) : _)) = term
+startSymbol (Grammar ((term, _, _) : _)) = term
 
-production nt (Grammar ((term, expr) : rest)) =
+production nt (Grammar ((term, locals, expr) : rest)) =
     if term == nt then expr else production nt (Grammar rest)

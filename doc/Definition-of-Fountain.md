@@ -16,7 +16,7 @@ be interpreted as a single token.  The bottommost productions in the
 grammar describe the concrete structure of tokens.
 
     Grammar ::= {Production}.
-    Production ::= NonTerminal "::=" {Expr0}.
+    Production ::= NonTerminal "::=" {"local" Variable ":"} {Expr0}.
     Expr0 ::= Expr1 {"|" Expr1}.
     Expr1 ::= Term {Term}.
     Term  ::= "{" Expr0 "}"

@@ -14,9 +14,16 @@ fountain = do
 prod = do
     nt <- capWord
     keyword "::="
+    l <- many local
     e <- expr0
     keyword ";"
-    return (nt, e)
+    return (nt, l, e)
+
+local = do
+    keyword "local"
+    v <- variable
+    keyword ":"
+    return v
 
 expr0 = do
     es <- sepBy (expr1) (keyword "|")
