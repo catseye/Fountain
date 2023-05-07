@@ -25,7 +25,28 @@ having this sort of clean formulation.
 
 ### Doesn't a Context-Sensitive Grammar (CSG) do what Fountain does?
 
-TBW
+It's true that every CSL can be described with a CSG -- in fact,
+the CSLs are defined as the languages accepted by CSGs.  However, the
+way that a CSG operates is very different from how Fountain operates.
+
+By CSG I'm referring to "Type-2" in the Chomsky hierarchy.  The grammars
+in the Chomsky hierarchy are basically string-rewriting systems.
+
+When context is involved in such a rewriting system, that context is
+"shuttled around" from production to production during parsing, much
+like how the head of a single-tape Turing machine must traverse
+potentially large distances of the tape, to access data that is
+relevant to what it's doing at some other location on the tape.
+
+For a theoretical construct this is fine.  For a practical parser
+(or generator) though, all this shuttling makes it a really poor way
+to parse (or generate) strings of a language.
+
+Fountain, on the other hand, much like Attribute Grammars (AGs),
+stores its context in an ancillary structure which is essentially
+random-access and independent of the linear storage of the terminals
+or nonterminals of the string being parsed or generated.  This makes
+it a much more efficient choice for dealing with context-sensitivity.
 
 ### Isn't Fountain really a programming language in disguise?
 
@@ -88,7 +109,7 @@ one.
 Then we'd need to weaken our complexity claim to something like "When generating
 a string terminates, it uses only polynomial space".
 
-### How does Fountain ensure no Fountain program strays outside PSPACE?
+### How does Fountain ensure no Fountain grammar strays outside PSPACE?
 
 Preventing Fountain from expressing languages which are not
 context-sensitive is still an open line of inquiry.  Clearly we

@@ -60,7 +60,7 @@ questions that the design of Fountain raises, such as:
 *   Isn't Fountain really a programming language in disguise?
 *   What complexity class does Fountain aim to capture?
 *   Is generating a string that is a member of a CSL also in PSPACE?
-*   How does Fountain ensure no Fountain program strays outside PSPACE?
+*   How does Fountain ensure no Fountain grammar strays outside PSPACE?
 *   What if we restrict Fountain to well-founded recursion?
 *   What if we forbid recursion entirely?
 
