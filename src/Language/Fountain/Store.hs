@@ -24,3 +24,14 @@ constructStore (constConstrainer:rest) =
         (k, v) = parseConstConstraint constConstrainer
     in
         insert k v $ constructStore rest
+
+updateStore :: [Variable] -> [Variable] -> Store -> Store -> Store
+updateStore [] [] sourceStore destStore = destStore
+updateStore (sourceKey:sourceKeys) (destKey:destKeys) sourceStore destStore =
+    -- Populate destKey in the new store with the value at sourceKey in the sourceStore
+    let
+        destStore' = case fetch sourceKey sourceStore of
+            Just val -> insert destKey val destStore
+            Nothing -> destStore
+    in
+        updateStore sourceKeys destKeys sourceStore destStore'
