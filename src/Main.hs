@@ -11,39 +11,43 @@ import qualified Language.Fountain.Preprocessor as Preprocessor
 
 
 data Flags = Flags {
-    dumpState :: Bool
+    dumpState :: Bool,
+    suppressNewline :: Bool
   } deriving (Show, Ord, Eq)
 
-defaultFlags = Flags{ dumpState = False }
+defaultFlags = Flags{ dumpState = False, suppressNewline = False }
 
 parseFlags flags ("--dump-state":rest) =
     parseFlags flags{ dumpState = True } rest
+parseFlags flags ("--suppress-newline":rest) =
+    parseFlags flags{ suppressNewline = True } rest
 parseFlags flags other = (flags, other)
 
 
 main = do
     args <- getArgs
     let (flags, args') = parseFlags defaultFlags args
+    let output = if (suppressNewline flags) then putStr else putStrLn
     case args' of
         ["load", grammarFileName] -> do
             grammar <- loadSource grammarFileName
-            putStrLn $ show grammar
+            output $ show grammar
         ["preprocess", grammarFileName] -> do
             grammar <- loadSource grammarFileName
             let grammar' = Preprocessor.preprocessGrammar grammar
-            putStrLn $ show grammar'
+            output $ show grammar'
         ["parse", grammarFileName, textFileName] -> do
             grammar <- loadSource grammarFileName
             text <- loadText textFileName
             let finalState = Parser.parseFrom grammar text
-            putStrLn $ if (dumpState flags) then show finalState else formatParseResult $ Parser.obtainResult finalState
+            output $ if (dumpState flags) then show finalState else formatParseResult $ Parser.obtainResult finalState
             exitWith $ either (\msg -> ExitFailure 1) (\remaining -> ExitSuccess) $ Parser.obtainResult finalState
         ("generate":grammarFileName:initialParams) -> do
             grammar <- loadSource grammarFileName
             let grammar' = Preprocessor.preprocessGrammar grammar
             let initialState = Generator.constructState initialParams
             let finalState = Generator.generateFrom grammar' initialState
-            putStrLn $ if (dumpState flags) then show finalState else formatGenerateResult $ Generator.obtainResult finalState
+            output $ if (dumpState flags) then show finalState else formatGenerateResult $ Generator.obtainResult finalState
             exitWith $ either (\msg -> ExitFailure 1) (\remaining -> ExitSuccess) $ Generator.obtainResult finalState
         _ -> do
             abortWith "Usage: fountain {flags} (load|preprocess|parse|generate) <input-filename> [<input-text>]"

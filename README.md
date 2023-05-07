@@ -70,18 +70,17 @@ TODO
 ### Syntax
 
 *   A syntax for comments.
-*   Syntax for declaring global variables (with a type?).
+*   A syntax for terminals so that `"` can be given as a terminal.
+    Probably any unicode code point by its hex.
 
 ### Semantics
 
 *   Inc, dec, gt, lt, should take either a variable or an integer on the RHS.
     Really, the RHS could be some kind of simple expression probably.
-*   Require that variables be declared.  (Unless maybe operating in some cavalier mode)
 *   Check constraints on all branches of an alternation.
 *   Allow local variables to be declared.
-*   Allow `arb` binding to have a default value, as this is possibly the only thing that makes sense for local variables.
 
-The last two items come from the following use case: say we want to parse any amounts
+This last item comes from the following use case: say we want to parse any amounts
 of whitespace between tokens, but when generating, always generate a fixed amount of
 whitespace.  We can't do this with a global variable (because then we always have to
 have the _same_ amount of whitespace between any two tokens).  We want a local
@@ -89,15 +88,12 @@ variable.  Moreover we always want to unify it with 1 when generating.
 
 So our "space" production looks something like:
 
-    Space ::= <. local n = 0 .> { " " <. n += 1 .> } <. arb n (1) .>
-
-The default could also be an expression based on globals.  Allowing the user to
-specify what the spacing is every time the Space production is generated.
+    Space ::= <. local n = 0 .> { " " <. n += 1 .> } <. n > 0 .>
 
 ### Implementation
 
 *   Allow params on command line when parsing, too.
-*   `-n` option like `echo`, to not produce an EOL after the output when generating
+*   Better usage message.
 
 ### Documentation
 
@@ -106,6 +102,9 @@ specify what the spacing is every time the Space production is generated.
 
 ### To think about
 
+*   Do we really want to allow `arb` binding to have a default value?
+*   Do we actually even need `arb`?  I thought we did, but...?
+*   Do we want to require global variables to be declared?  With types?
 *   Will we want productions to have arguments and how would that work?
 *   Will we want variables of string type?
 *   Will we want variables of "string produced by a certain production" type?
