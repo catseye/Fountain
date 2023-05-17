@@ -6,13 +6,15 @@ Design Goals
 
 Fountain should:
 
-*   Be a grammar formalism (rather than a programming language).
+*   Be a grammar formalism, as opposed to a programming language.
 *   Permit implementations that perform both efficient parsing of
-    strings, and efficient generation of strings, based on a single
-    Fountain grammar.
-*   Be able to express all the Context-Sensitive Languages.
+    strings, and efficient generation of strings, based on the
+    same grammar description.
+*   Be able to express any Context-Sensitive Language (CSL).
 *   Be able to express _only_ the Context-Sensitive Languages (lofty goal; see below).
-*   Allow these CSLs to be expressed as concisely and cleanly as possible.
+*   Allow these CSLs, and any supplementary information needed to
+    support efficient parsing and generation from them, to be expressed
+    as concisely and cleanly as possible.
 
 Questions
 ---------
@@ -131,23 +133,16 @@ We will elaborate on this problem in the next subsection.
 #### Where do the CSLs even end?
 
 Although the current state of theoretical computer science can say where the
-CFLs end and the CSLs begin, it seems to be unable to say exactly where the
-CSLs end (without making direct reference to CSGs).
+CFLs end and the CSLs begin, less is known about exactly where the
+CSLs end and the non-CSLs begin.
 
 Here's what is known:
 
-*   Parsing a CSG is a PSPACE-complete problem.  That is, the problem of
-    taking a description of a CSG and a string and accepting if the
-    string is a member of the language and rejecting if it isn't, is in
-    PSPACE, and is at least as complex as any other problem in PSPACE.
-*   Every CSL is equivalent to a linear-bounded automaton (LBA).  This
-    is true even if we don't describe our CSL with a CSG.  An LBA will
-    execute in NSPACE(n), where n is the linear bound.  This suggests
-    (though I haven't seen it spelled out this way, unfortunately)
-    that the problem of simulating an LBA (i.e. take a description of
+*   Parsing a CSL is a PSPACE-complete problem.  We know this because
+    every CSL corresponds to a linear bounded automaton (LBA), and
+    the problem of simulating an LBA (i.e. take a description of
     an LBA and a string on input, accept iff LBA accepts that string)
-    is also PSPACE-complete.  It would make sense if it was.  Parsing
-    a CSL is, at any rate, somewhere in PSPACE.
+    is PSPACE-complete.
 *   Computing a primitive recursive function is NEXPTIME-complete.  That
     is, the problem of taking a description of a PR function and an
     integer and accepting if that function computes that integer and
@@ -157,8 +152,8 @@ Here's what is known:
     is not known to be strict.
 *   Therefore we don't know if there are any problems that are in
     NEXPTIME that aren't in PSPACE.
-*   Therefore we don't know if there are any PR functions which can be
-    expressed as a CSL. (Because if there were, we could seperate
+*   Therefore we don't know if there are any PR functions which cannot
+    be expressed as a CSL. (Because if there were, we could seperate
     NEXPTIME and PSPACE, and we haven't.)
 
 Therefore we don't have an indication of which PR functions are
@@ -168,24 +163,29 @@ Therefore we don't have a good way to look at a Fountain grammar and
 say if it describes a CSL, or something outside the CSLs (for example,
 a primitive recursive function).
 
-#### Is generating a string that is a member of a CSL also in PSPACE?
+#### Is generating a string that is a member of a CSL also PSPACE-complete?
 
-Honestly, I don't know.  I haven't come across anything about this in
-the literature yet.
+I haven't come across anything specifically about this in the literature,
+but I believe it is, for the following reasons.
 
-My guess is that it is, based on the following reasoning.  An acceptor
-for a CSL can be turned into a parser for that CSL, one which outputs
-some of its context (e.g. outputting `n=3` when given `aaabbbccc`),
-efficiently.  This parser can also be rephrased as a transducer
-(e.g. it outputs `aaabbbccc` when given `n=3`; this sort of thing is
-exactly Fountain's purpose).  This reverse "generation" process is
-no more and no less fundamentally complex than the original "parsing"
-process.  So it too is in PSPACE.
+An acceptor for a CSL can be turned into a parser for that CSL, one which
+outputs some of its context (e.g. outputting `n=3` when given `aaabbbccc`),
+efficiently.  When looking at the CSL as an LBA, this is trivial: the
+context will remain somewhere on the tape at the end, so just output that.
 
-But that's a guess.  I don't know.
+Now, this parser can also be viewed as a transducer, and we can think of
+running it in reverse (e.g. it outputs `aaabbbccc` when given `n=3`;
+this sort of thing is exactly Fountain's purpose).
 
-It could also be the case that the generation goals are not sufficiently defined,
-and Fountain keeps searching forever for a satisfying string, and never finds
+In the worst case, running this reverse process means running the original
+parser nondeterministically and accepting if there is an accepting path
+from some input to our goal.  This implies we would need NPSPACE to run
+this transducer in reverse.  But by Savitch's Theorem, PSPACE = NPSPACE,
+so we could still do this on an LBA, so it would still be a CSL.
+
+For how Fountain is currently defined, it could also be the case that
+the generation goals are not sufficiently defined, and Fountain keeps
+searching forever for a satisfying string, and never finds
 one.  In that case, we'd need to weaken our complexity claim to something like
 "When generating a string terminates, it uses only polynomial space".
 
@@ -206,6 +206,13 @@ repetition alone might be inconvenient to the point of being obnoxious.
 And it remains unclear if it would help us show that the parsing process
 can be captured by a CSL and does not allow the equivalent of PR functions
 to be constructed.
+
+#### What if we impose linear bounds on the storage that Fountain uses?
+
+The fact that every CSL can be captured by an LBA suggests maybe we
+could just linear-bound the amount of storage used by a Fountain
+grammar in the worst case.  Maybe; I haven't thought much about
+this yet.  My initial impression is that it seems a bit artificial.
 
 ### Why would we want to support local variables?
 
