@@ -61,11 +61,9 @@ several interesting questions that the design of Fountain raises, such as:
 *   Can't a Definite Clause Grammar (DCG) do what Fountain does?
 *   Doesn't a Context-Sensitive Grammar (CSG) do what Fountain does?
 *   Isn't Fountain really a programming language in disguise?
-*   What complexity class does Fountain aim to capture?
-*   Is generating a string that is a member of a CSL also in PSPACE?
-*   How does Fountain ensure no Fountain grammar strays outside PSPACE?
-*   What if we restrict Fountain to well-founded recursion?
-*   What if we forbid recursion entirely?
+*   How can it be ensured that Fountain can express only the CSLs?
+*   Why would we want to support local variables?
+*   How can parameter passing be implemented?
 
 TODO
 ----

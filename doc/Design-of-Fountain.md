@@ -1,27 +1,44 @@
-Fountain Design Questions
-=========================
+Design of Fountain
+==================
+
+Design Goals
+------------
+
+Fountain should:
+
+*   Be a grammar formalism (rather than a programming language).
+*   Permit implementations that perform both efficient parsing of
+    strings, and efficient generation of strings, based on a single
+    Fountain grammar.
+*   Be able to express all the Context-Sensitive Languages.
+*   Be able to express _only_ the Context-Sensitive Languages (lofty goal; see below).
+*   Allow these CSLs to be expressed as concisely and cleanly as possible.
+
+Questions
+---------
 
 ### Can't a Definite Clause Grammar (DCG) do what Fountain does?
 
-It's true that DCGs have a simple relational definition that can be embedded
-in a logic (or relational) programming language such as Prolog (or miniKanren),
-and this directly executed.
+It's true that DCGs have a simple relational definition, such that a DCG can be
+easily coded in a logic (or relational) programming language such as Prolog
+(or miniKanren), and in that form, directly executed.
 
 To the extent that the language supports querying the relation in both directions
 (miniKanren is stronger than Prolog in this regard), such a DCG can be used to
 both parse and generate strings of its language.
 
 However, resorting to nondeterministic search when processing in one of the
-directions, even when the other direction is deterministically processable,
-is seemingly inevitable.  Implementing nondeterministic search efficiently is
+directions, even when the other direction can be processed deterministically,
+is apparently unavoidable.  Implementing nondeterministic search efficiently is
 well-understood to be extremely challenging.  It does not "scale up" well,
-and iterative approaches tend to yield the least interesting results first.
+and enumerative approaches tend to enumerate the least interesting results first.
 
 There is ongoing research to implement more sophisticated search strategies in
-miniKanren that could be useful here.  But even where tuning the search is a
-possibility, there is a desire to have as clean a formulation as possible -- one
-that most resembles the most direct statement of the problem.  Fountain aims for
-having this sort of clean formulation.
+miniKanren that could be useful here.  But often, tuning the search involves some
+kind of annotation or configuration, potentially muddying the exposition of the grammar
+and obscuring its structure.  For Fountain, there is a desire to have as
+clean a formulation as possible -- one that most resembles the most direct statement
+of the problem.
 
 ### Doesn't a Context-Sensitive Grammar (CSG) do what Fountain does?
 
@@ -29,24 +46,25 @@ It's true that every CSL can be described with a CSG -- in fact,
 the CSLs are defined as the languages accepted by CSGs.  However, the
 way that a CSG operates is very different from how Fountain operates.
 
-By CSG I'm referring to "Type-1" in the Chomsky hierarchy.  The grammars
-in the Chomsky hierarchy are basically string-rewriting systems.
+By CSG I'm referring to "Type-1" grammars in the Chomsky hierarchy.
+
+All grammars in the Chomsky hierarchy are basically string-rewriting systems.
 
 When context is involved in such a rewriting system, that context is
 "shuttled around" from production to production during parsing, much
-like how the head of a single-tape Turing machine must traverse
-potentially large distances of the tape, to access data that is
+like how the head of a single-tape Turing machine often must traverse
+potentially large distances of the tape in order to access data that's
 relevant to what it's doing at some other location on the tape.
 
 For a theoretical construct this is fine.  For a practical parser
-(or generator) though, all this shuttling makes it a really poor way
-to parse (or generate) strings of a language.
+(resp. generator) though, all this shuttling makes it a really slow way
+to parse (resp. generate) strings of a language.
 
 Fountain, on the other hand, much like Attribute Grammars (AGs),
 stores its context in an ancillary structure which is essentially
-random-access and independent of the linear storage of the terminals
-or nonterminals of the string being parsed or generated.  This makes
-it a much more efficient choice for dealing with context-sensitivity.
+random-access and independent of the linear string of terminals
+and nonterminals of the string being parsed or generated.  This makes
+it much more efficient as a method for supporting context-sensitivity.
 
 ### Isn't Fountain really a programming language in disguise?
 
@@ -58,21 +76,27 @@ and defining a syntax; using the constraint parts of Fountain feels
 like writing a program.  It's a design goal for it to feel as little
 like writing a program as possible.  That is, it shouldn't be the case
 that the user is required to do a lot of fiddly detail work, updating
-variables and so forth, to achieve their desired effect.  Still, a
-certain amount of that is inevitable, and I suspect it's not even well
-understood how _much_ of that is inevitable.  It might be that a
+variables and so forth, to achieve the result they desire.  Still, a
+certain amount of that is probably inevitable, and I suspect it's not even
+well understood how _much_ of it is inevitable.  It might be that a
 great deal of fiddly work is required for most interesting tasks, and
 that writing Fountain grammars unavoidably feels a lot like programming.
 That would be a disappointing result.  The jury's still out though.
 
 One property that we think of most programming languages having is that
 they are Turing-complete.  One of Fountain's design goals is that it
-not be Turing-complete; you cannot, e.g., write a Lisp interpreter in it.
+can express only the CSLs, and is therefore not Turing-complete; you cannot,
+for instance, write a Lisp interpreter in it.
 This distances it from previous experiments by Cat's Eye Technologies
 to design "grammar-like" programming languages, such as
 [Tamsin][] and [Tandem][], which were intended to be Turing-complete.
 
-### What complexity class does Fountain aim to capture?
+All the same, parsing a context-sensitive language is a PSPACE-complete problem,
+and PSPACE is a huge computational class -- it's known to contain NP.
+And NP-complete problems are already generally considered "intractable";
+so for all practical purposes, PSPACE ought to be ample.
+
+### How can it be ensured that Fountain can express only the CSLs?
 
 Fountain exists for the purpose of to parsing and generating
 context-sensitive languages.  To this end, it is a design goal
@@ -82,71 +106,106 @@ _all_ and _only_ the context-sensitive languages.
 It turns out there are a number of snags with this goal, however, so we
 treat it as more of a "moral" goal than a practically achievable one.
 
-But let's talk about being restricted to CFLs first before exploring
-those snags.
+We will examine these snags in subsections below.
 
-Parsing a context-sensitive language is a PSPACE-complete problem.
-So if all a system can do is parse CSLs, it does mean that it isn't Turing-complete.
-At the same time, PSPACE is a huge computational class, one which is
-known to contain NP, and is thought to be quite a bit larger.
-NP-complete problems already are generally considered "intractable";
-so for all practical purposes, PSPACE ought to be ample.
+#### Can we not show that Fountain is equivalent to the CSGs?
 
-### Is generating a string that is a member of a CSL also in PSPACE?
+So, if we could say that for every Fountain grammar there's an equivalent
+CSG that accepts and rejects the very same strings, and show how to derive
+it mechanically, then we could say Fountain captures exactly the CSLs.
 
-This is less clear.  I think there is a good chance it is, so long as
-the generation goals (that is, the parameters given as input) are defined,
-because then the grammar is something like a transducer: given a string,
-get a set of parameters; given a set of parameters, get a string.  It
-should be "equally context-sensitive" in both directions.
+However, Fountain is structured differently enough from the CSGs (see
+"shuttling" vs. "ancillary context", above) that this would not be a simple
+task.
 
-But I could be wrong.
+The structure of Fountain, in fact, closely resembles the structure of
+recursive functions.  Productions can pass arguments to other productions,
+and productions can refer to themselves.
+
+But even if we restrict the structure that Fountain has here to that of the
+primitive recursive functions (PR), we run into a problem when we try to
+compare it to the structure of the CSGs.
+
+We will elaborate on this problem in the next subsection.
+
+#### Where do the CSLs even end?
+
+Although the current state of theoretical computer science can say where the
+CFLs end and the CSLs begin, it seems to be unable to say exactly where the
+CSLs end (without making direct reference to CSGs).
+
+Here's what is known:
+
+*   Parsing a CSG is a PSPACE-complete problem.  That is, the problem of
+    taking a description of a CSG and a string and accepting if the
+    string is a member of the language and rejecting if it isn't, is in
+    PSPACE, and is at least as complex as any other problem in PSPACE.
+*   Every CSL is equivalent to a linear-bounded automaton (LBA).  This
+    is true even if we don't describe our CSL with a CSG.  An LBA will
+    execute in NSPACE(n), where n is the linear bound.  This suggests
+    (though I haven't seen it spelled out this way, unfortunately)
+    that the problem of simulating an LBA (i.e. take a description of
+    an LBA and a string on input, accept iff LBA accepts that string)
+    is also PSPACE-complete.  It would make sense if it was.  Parsing
+    a CSL is, at any rate, somewhere in PSPACE.
+*   Computing a primitive recursive function is NEXPTIME-complete.  That
+    is, the problem of taking a description of a PR function and an
+    integer and accepting if that function computes that integer and
+    rejecting if it doesn't, is in NEXPTIME, and is at least as complex
+    as any other problem in NEXPTIME.
+*   PSPACE is known to be contained in NEXPTIME, but the containment
+    is not known to be strict.
+*   Therefore we don't know if there are any problems that are in
+    NEXPTIME that aren't in PSPACE.
+*   Therefore we don't know if there are any PR functions which can be
+    expressed as a CSL. (Because if there were, we could seperate
+    NEXPTIME and PSPACE, and we haven't.)
+
+Therefore we don't have an indication of which PR functions are
+expressible as CSLs, and which aren't.
+
+Therefore we don't have a good way to look at a Fountain grammar and
+say if it describes a CSL, or something outside the CSLs (for example,
+a primitive recursive function).
+
+#### Is generating a string that is a member of a CSL also in PSPACE?
+
+Honestly, I don't know.  I haven't come across anything about this in
+the literature yet.
+
+My guess is that it is, based on the following reasoning.  An acceptor
+for a CSL can be turned into a parser for that CSL, one which outputs
+some of its context (e.g. outputting `n=3` when given `aaabbbccc`),
+efficiently.  This parser can also be rephrased as a transducer
+(e.g. it outputs `aaabbbccc` when given `n=3`; this sort of thing is
+exactly Fountain's purpose).  This reverse "generation" process is
+no more and no less fundamentally complex than the original "parsing"
+process.  So it too is in PSPACE.
+
+But that's a guess.  I don't know.
 
 It could also be the case that the generation goals are not sufficiently defined,
 and Fountain keeps searching forever for a satisfying string, and never finds
-one.
+one.  In that case, we'd need to weaken our complexity claim to something like
+"When generating a string terminates, it uses only polynomial space".
 
-Then we'd need to weaken our complexity claim to something like "When generating
-a string terminates, it uses only polynomial space".
-
-### How does Fountain ensure no Fountain grammar strays outside PSPACE?
-
-Preventing Fountain from expressing languages which are not
-context-sensitive is still an open line of inquiry.  Clearly we
-must disallow unrestricted recursion, but the best way of doing
-this is less clear.
-
-### What if we restrict Fountain to well-founded recursion?
+#### What if we restrict the recursion that Fountain is capable of, in some way?
 
 Even if we limit the recursion to well-founded recursion (such
 as found in [Exanoke][]), primitive recursive computations can
 still be expressed.  Primitive recursion is known to be able to
 solve any problem in NEXPTIME.
 
-PSPACE is contained in NEXPTIME, but it's not known if the containment
-is strict.  That is, it's not known if there are problems in NEXPTIME
-that aren't in PSPACE.
+Forbidding recursion entirely might help -- so long as we also confirm
+that every instance of every repetition construct necessarily consumes one
+or more tokens from the input string, to prevent unbounded looping.
 
-Indeed there is something interesting here that I should write about.
-If we could show that primitive recursion could accept some language
-that a context-sensitive grammar could not accept, we could
-seperate NEXPTIME and SPACE!  Given how many researchers have tried
-to do that and not succeeded, it's not likely that me, in the course
-of designing a computer language, will find a distinction that they
-haven't.  Well-founded recursion would restrict us to NEXPTIME and
-we don't _know_ that's not the same thing as being restricted to
-PSPACE (i.e. the CFLs) -- so that is probably the best we can do
-in practice.
+But expressing grammatical structures such as nested parenthesis using
+repetition alone might be inconvenient to the point of being obnoxious.
 
-### What if we forbid recursion entirely?
-
-Forbidding recursion entirely will certainly prevent going outside
-of NEXPTIME -- so long as we also confirm that every instance of
-every repetition construct necessarily consumes one or more tokens
-from the input string.  But expressing grammatical structures such
-as nested parenthesis using repetition alone might be inconvenient
-to the point of being obnoxious.  And we need to be careful to still
-allow all CSLs to be expressed, which might prove cumbersome to show.
+And it remains unclear if it would help us show that the parsing process
+can be captured by a CSL and does not allow the equivalent of PR functions
+to be constructed.
 
 ### Why would we want to support local variables?
 
@@ -163,7 +222,7 @@ using it.  So our "space" production might look something like:
 
     Space ::= <. n = 0 .> { " " <. n += 1 .> } <. n > 0 .>
 
-### How do we implement parameter passing?
+### How can parameter passing be implemented?
 
 All parameters are "reference parameters" in some sense (think Prolog).
 
