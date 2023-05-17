@@ -51,11 +51,12 @@ It is possible to write Fountain grammars that lead to backtracking
 search, or even infinite loops during generation.  How best to handle
 these cases remains an open line of inquiry.
 
-For a fuller description of the Fountain language, see
+For a more definitive description of the Fountain language, see
  **[doc/Definition-of-Fountain.md](doc/Definition-of-Fountain.md)**.
 
-See also **[doc/Fountain-Design-Questions.md](doc/Fountain-Design-Questions.md)**
-for many interesting questions that the design of Fountain raises, such as:
+For insight into the design choices underlying Fountain, see
+**[doc/Design-of-Fountain.md](doc/Design-of-Fountain.md)**.  This includes
+several interesting questions that the design of Fountain raises, such as:
 
 *   Can't a Definite Clause Grammar (DCG) do what Fountain does?
 *   Doesn't a Context-Sensitive Grammar (CSG) do what Fountain does?
@@ -126,8 +127,9 @@ History
 ### 0.2
 
 0.2 refined some of the core ideas of Fountain.  The
-**[Fountain Design Questions](doc/Fountain-Design-Questions.md)**
-document was written.  Parameter passing was added to
+**[Design of Fountain](doc/Design-of-Fountain.md)**
+document (consisting primarily of design questions rather
+than design answers) was written.  Parameter passing was added to
 productions.  Many small improvements were made to the
 reference implementation.
 
