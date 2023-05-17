@@ -6,14 +6,10 @@ capable of expressing context-sensitive languages (CSLs), and supporting both
 efficient parsing _and_ efficient generation of strings conforming to those
 languages.
 
-It does this by allowing semantic actions to be inserted between the
-elements of a production rule.  Unlike the imperative semantic actions in a
-typical parser-generator (such as `yacc`) however, these actions are
-_relational_, and are also called _constraints_.  This situates Fountain
-closer to the Definite Clause Grammars (DCGs) or Attribute Grammars (AGs).
-
-To support efficient generation, the interspersed semantic actions
-are analyzed to determine a plausible deterministic strategy for generation.
+It does this by allowing semantic constraints to be inserted between the
+elements of a production rule.  To support efficient generation, these
+interspersed semantic constraints can be analyzed to determine a usable
+deterministic strategy for generation.
 
 Here is an example Fountain grammar which expresses the classic CSL
 `a`^_n_ `b`^_n_ `c`^_n_:
@@ -35,8 +31,8 @@ the parse will fail.
     Success
 
 In comparison, during generation, we assume the variable `n` has
-already been assigned a value, as part of the input to the generation
-process (which may be externally supplied, and generated randomly).
+already been assigned a value, as part of the (externally supplied)
+input to the generation process.
 In addition, the repetition construct `{ "a" <. a += 1 .> }` can "see"
 the `a = n` constraint that follows it; it will be checked on each
 iteration, and the repetition will terminate when it is true.
@@ -45,8 +41,8 @@ iteration, and the repetition will terminate when it is true.
     aaaaabbbbbccccc
 
 Neither of the above processes involve backtracking; the string
-is parsed or generated in linear time.  However, it is important to note
-that, while Fountain supports deterministic operation, it does not enforce it.
+is parsed and generated in linear time.  Note, however, that while
+Fountain supports deterministic operation, it does not enforce it.
 It is possible to write Fountain grammars that lead to backtracking
 search, or even infinite loops during generation.  How best to handle
 these cases remains an open line of inquiry.
@@ -93,7 +89,6 @@ TODO
 ### To think about
 
 *   When parameters are declared, do we also want to declare their types?
-*   Will we want productions to have arguments and how would that work?
 *   Will we want variables of string type?
 *   Will we want variables of "string produced by a certain production" type?
 *   What other types might we want?  Lists and maps and sets seem likely.
@@ -107,7 +102,10 @@ TODO
     The key here is that we must also be able to parse what we've
     pseudo-randomly generated.  But, another major consideration is that
     we don't _really_ want to thread this state through explicitly.  We'd
-    like it to be a bit tidier than that.
+    like it to be a bit tidier than that.  Actually, this is a significant
+    design space unto itself (e.g. can we use alternation to perform
+    random choice without compromising efficiency?) so it probably
+    deserves an writeup in the design document.
 *   Write the "kennel story" generator in Fountain.  Show that
     it can parse the same story it generated, in a reasonable
     time, even up to 50,000 words.
