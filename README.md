@@ -66,7 +66,6 @@ TODO
 
 ### Syntax
 
-*   A syntax for comments.
 *   A syntax for terminals so that `"` can be given as a terminal.
     Probably any unicode code point by its hex.
 

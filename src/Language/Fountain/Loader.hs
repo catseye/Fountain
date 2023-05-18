@@ -8,6 +8,7 @@ import Language.Fountain.Constraint
 
 
 fountain = do
+    fspaces
     ps <- many prod
     return (Grammar ps)
 
@@ -118,33 +119,45 @@ actuals = do
 
 keyword s = do
     try (string s)
-    spaces
+    fspaces
 
 capWord = do
     c <- upper
     s <- many (alphaNum)
-    spaces
+    fspaces
     return (c:s)
 
 lowWord = do
     c <- lower
     s <- many (alphaNum)
-    spaces
+    fspaces
     return (c:s)
 
 intlit = do
     c <- digit
     cs <- many digit
     num <- return (read (c:cs) :: Integer)
-    spaces
+    fspaces
     return num
 
 quotedString = do
     c1 <- char '"'
     s <- many $ satisfy (\x -> x /= '"')
     c2 <- char '"'
-    spaces
+    fspaces
     return s
+
+fspaces = do
+    spaces
+    many comment
+    return ()
+
+comment = do
+    keyword "//"
+    many $ satisfy (\x -> x /= '\n')
+    (do { char '\n'; return ()} <|> eof)
+    fspaces
+    return ()
 
 --
 -- Driver

@@ -10,7 +10,8 @@ Grammar of Fountain
 -------------------
 
 This grammar is written in EBNF.  Any amount of whitespace may occur
-between tokens (and for this purpose, comments count as whitespace).
+between tokens (and for this purpose, comments, which are introduced
+by `//` and extend until the end of the line, count as whitespace).
 Some whitespace must appear between tokens if the tokens would otherwise
 be interpreted as a single token.  The bottommost productions in the
 grammar describe the concrete structure of tokens.

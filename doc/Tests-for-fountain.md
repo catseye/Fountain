@@ -20,9 +20,12 @@ Sequence.
     Goal ::= "f" "o" "o";
     ===> Grammar [("Goal",[],Alt [Seq [Terminal 'f',Terminal 'o',Terminal 'o']])]
 
-Multi-character terminal.
+Multi-character terminal and whitespace and comments.
 
-    Goal ::= "foo";
+    // This is my grammar.
+           
+    Goal ::= "foo";  // You see
+    // how it is
     ===> Grammar [("Goal",[],Alt [Seq [Seq [Terminal 'f',Terminal 'o',Terminal 'o']]])]
 
 Alternation and recursion.
