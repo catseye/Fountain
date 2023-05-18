@@ -7,35 +7,23 @@ import Language.Fountain.Grammar
 import Language.Fountain.Constraint
 
 
--- Grammar ::= {Production}.
--- Production ::= NonTerminal "::=" {Expr0}.
--- Expr0 ::= Expr1 {"|" Expr1}.
--- Expr1 ::= Term {Term}.
--- Term  ::= "{" Expr0 "}"
---         | "(" Expr0 ")"
---         | "<." Constraint ".>"
---         | Terminal
---         | NonTerminal.
--- Constraint ::= Variable Constrainer.
--- Constrainer ::= "arb" Variable
---               | "=" (Variable | IntLit)
---               | "+=" IntLit
---               | "-=" IntLit
---               | ">" IntLit
---               | "<" IntLit.
-
-
 fountain = do
     ps <- many prod
     return (Grammar ps)
 
 prod = do
-    s <- capWord
-    let nt = NT s
+    nt <- capWord
+    p <- option [] formals
     keyword "::="
     e <- expr0
     keyword ";"
-    return (nt, e)
+    return (nt, p, e)
+
+formals = do
+    keyword "<"
+    v <- sepBy (variable) (keyword ",")
+    keyword ">"
+    return v
 
 expr0 = do
     es <- sepBy (expr1) (keyword "|")
@@ -65,12 +53,7 @@ constraintExpr = do
     keyword ".>"
     return $ Constraint $ c
 
-constrainer = (try arb) <|> (try unifyConst) <|> (try unifyVar) <|> (try inc) <|> (try dec) -- <|> (try gt) <|> (try lt)
-
-arb = do
-    keyword "arb"
-    v <- variable
-    return $ Arb v
+constrainer = (try unifyConst) <|> (try unifyVar) <|> (try inc) <|> (try dec) <|> (try gt) <|> (try lt)
 
 unifyConst = do
     v <- variable
@@ -96,17 +79,38 @@ dec = do
     n <- intlit
     return $ Dec v n
 
+gt = do
+    v <- variable
+    keyword ">"
+    n <- intlit
+    return $ GreaterThan v n
+
+lt = do
+    v <- variable
+    keyword "<"
+    n <- intlit
+    return $ LessThan v n
+
 variable = do
     s <- lowWord
     return $ Var s
 
 terminal = do
     s <- quotedString
-    return $ Term $ T (head s)
+    case s of
+        [c] -> return $ Terminal $ c
+        _ -> return $ Seq $ map (\c -> Terminal c) s
 
 nonterminal = do
     s <- capWord
-    return $ Term $ NT s
+    a <- option [] actuals
+    return $ NonTerminal s a
+
+actuals = do
+    keyword "<"
+    v <- sepBy (variable) (keyword ",")
+    keyword ">"
+    return v
 
 --
 -- Low level: Concrete things
@@ -148,3 +152,7 @@ quotedString = do
 
 parseFountain :: String -> Either ParseError Grammar
 parseFountain text = parse fountain "" text
+
+parseConstConstraint :: String -> (Variable, Integer)
+parseConstConstraint text = case parse unifyConst "" text of
+    Right (UnifyConst v i) -> (v, i)

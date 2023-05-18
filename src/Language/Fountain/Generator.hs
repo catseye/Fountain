@@ -1,4 +1,4 @@
-module Language.Fountain.Generator (generateFrom, formatResult) where
+module Language.Fountain.Generator (constructState, generateFrom, obtainResult) where
 
 import Language.Fountain.Grammar
 import Language.Fountain.Constraint
@@ -12,7 +12,9 @@ data GenState = Generating String Store
 
 genTerminal c (Generating cs a) = (Generating (c:cs) a)
 
-formatResult (Generating s _) = s
+obtainResult :: GenState -> Either String String
+obtainResult (Generating s _) = Right s
+obtainResult Failure = Left "failure"
 
 
 gen :: Grammar -> GenState -> Expr -> GenState
@@ -54,9 +56,23 @@ gen g state (Loop l postconditions) =
                 Nothing -> Nothing
                 Just st' -> checkLimit cs st'
 
-gen g st (Term t) = genTerm g st t where
-    genTerm g st t@(T c) = genTerminal c st
-    genTerm g st nt@(NT _) = gen g st (production nt g)
+gen g st (Terminal c) = genTerminal c st
+gen g Failure (NonTerminal nt actuals) = Failure
+gen g (Generating text store) (NonTerminal nt actuals) =
+    let
+        formals = getFormals nt g
+        newStore = updateStore actuals formals store empty
+        st' = Generating text newStore
+        expr' = production nt g
+    in
+        case gen g st' expr' of
+            Generating text' modifiedStore ->
+                let
+                    reconciledStore = updateStore formals actuals modifiedStore store
+                in
+                    Generating text' reconciledStore
+            Failure ->
+                Failure
 
 gen g st@(Generating text store) (Constraint cstr) =
     case applyConstraint cstr store of
@@ -82,16 +98,29 @@ applyConstraint (UnifyVar v w) st =
             Just $ insert v wValue st
         (Nothing, Nothing) ->
             Just st
-applyConstraint (Arb v) st =
-    -- TODO not always 5 :)
-    Just $ insert v 5 st
 applyConstraint (Inc v i) st =
     Just $ update (\i -> Just (i + 1)) v st
 applyConstraint (Dec v i) st =
     Just $ update (\i -> Just (i - 1)) v st
+applyConstraint (GreaterThan v i) st =
+    case fetch v st of
+        Just value ->
+            if value > i then Just st else Nothing
+        Nothing ->
+            Nothing
+applyConstraint (LessThan v i) st =
+    case fetch v st of
+        Just value ->
+            if value < i then Just st else Nothing
+        Nothing ->
+            Nothing
 
 
-generateFrom :: Grammar -> GenState
-generateFrom g = revgen $ gen g (Generating "" empty) (production (startSymbol g) g)
+constructState :: [String] -> GenState
+constructState initialParams = Generating "" (constructStore initialParams)
+
+generateFrom :: Grammar -> GenState ->  GenState
+generateFrom g state = revgen $ gen g state (production (startSymbol g) g)
     where
         revgen (Generating s a) = Generating (reverse s) a
+        revgen other = other

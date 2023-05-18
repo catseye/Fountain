@@ -1,0 +1,5 @@
+Goal ::=
+    "The" Sp "quick" Sp "brown" Sp "fox" Sp
+    "jumped" Sp "over" Sp "the" Sp "lazy" Sp "dog" "."
+    ;
+Sp ::= <. n = 0 .> { " " <. n += 1 .> } <. n > 0 .>;

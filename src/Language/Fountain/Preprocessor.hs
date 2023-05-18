@@ -9,7 +9,7 @@ import Language.Fountain.Constraint
 preprocessGrammar :: Grammar -> Grammar
 preprocessGrammar (Grammar productions) =
     let
-        productions' = map (\(term, expr) -> (term, preprocessExpr expr)) productions
+        productions' = map (\(term, formals, expr) -> (term, formals, preprocessExpr expr)) productions
     in
         Grammar productions'
 

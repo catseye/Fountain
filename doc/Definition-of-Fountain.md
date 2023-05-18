@@ -6,14 +6,38 @@ This document defines the Fountain Grammar Formalism.
 It does this in part by test cases.  These test cases
 are written in Falderal format.
 
+Grammar of Fountain
+-------------------
+
+This grammar is written in EBNF.  Any amount of whitespace may occur
+between tokens (and for this purpose, comments count as whitespace).
+Some whitespace must appear between tokens if the tokens would otherwise
+be interpreted as a single token.  The bottommost productions in the
+grammar describe the concrete structure of tokens.
+
+    Grammar ::= {Production}.
+    Production ::= NonTerminal [Formals] "::=" {Expr0}.
+    Expr0 ::= Expr1 {"|" Expr1}.
+    Expr1 ::= Term {Term}.
+    Term  ::= "{" Expr0 "}"
+            | "(" Expr0 ")"
+            | "<." Constraint ".>"
+            | Terminal
+            | NonTerminal [Actuals].
+    Formals ::= "<" Variable {"," Variable} ">".
+    Actuals ::= "<" VarExpr {"," VarExpr} ">".
+    VarExpr ::= Variable.  -- TODO: In future this might be richer.
+    Constraint ::= Variable Constrainer.
+    Constrainer ::= "=" (Variable | IntLit)
+                  | "+=" IntLit
+                  | "-=" IntLit
+                  | ">" IntLit
+                  | "<" IntLit.
+    NonTerminal ::= <<upper>><<alphanumeric>>*.
+    Terminal ::= <<">><<any except ">>+<<">>.
+
 The Tests
 ---------
-
-    -> Functionality "Load Fountain Grammar" is implemented by
-    -> shell command "bin/fountain load %(test-body-file)"
-
-    -> Functionality "Preprocess Fountain Grammar" is implemented by
-    -> shell command "bin/fountain preprocess %(test-body-file)"
 
     -> Functionality "Parse using Fountain Grammar" is implemented by
     -> shell command "bin/fountain parse %(test-body-file) %(test-input-file)"
@@ -21,59 +45,8 @@ The Tests
     -> Functionality "Generate using Fountain Grammar" is implemented by
     -> shell command "bin/fountain generate %(test-body-file)"
 
-### Loading
-
-    -> Tests for functionality "Load Fountain Grammar"
-
-Sequence.
-
-    Goal ::= "f" "o" "o";
-    ===> Grammar [(NT "Goal",Alt [Seq [Term (T 'f'),Term (T 'o'),Term (T 'o')]])]
-
-Alternation and recursion.
-
-    Goal ::= "(" Goal ")" | "0";
-    ===> Grammar [(NT "Goal",Alt [Seq [Term (T '('),Term (NT "Goal"),Term (T ')')],Seq [Term (T '0')]])]
-
-Repetition.
-
-    Goal ::= "(" {"0"} ")";
-    ===> Grammar [(NT "Goal",Alt [Seq [Term (T '('),Loop (Alt [Seq [Term (T '0')]]) [],Term (T ')')]])]
-
-Constraints.
-
-    Goal ::= <. arb n .>
-         <. a = 0 .> { "a" <. a += 1 .> } <. a = n .>
-         <. b = 0 .> { "b" <. b += 1 .> } <. b = n .>
-         <. c = 0 .> { "c" <. c += 1 .> } <. c = n .>
-         ;
-    ===> Grammar [(NT "Goal",Alt [Seq [Constraint (Arb (Var "n")),Constraint (UnifyConst (Var "a") 0),Loop (Alt [Seq [Term (T 'a'),Constraint (Inc (Var "a") 1)]]) [],Constraint (UnifyVar (Var "a") (Var "n")),Constraint (UnifyConst (Var "b") 0),Loop (Alt [Seq [Term (T 'b'),Constraint (Inc (Var "b") 1)]]) [],Constraint (UnifyVar (Var "b") (Var "n")),Constraint (UnifyConst (Var "c") 0),Loop (Alt [Seq [Term (T 'c'),Constraint (Inc (Var "c") 1)]]) [],Constraint (UnifyVar (Var "c") (Var "n"))]])]
-
-### Preprocessing
-
-    -> Tests for functionality "Preprocess Fountain Grammar"
-
-Sequence.
-
-    Goal ::= "f" "o" "o";
-    ===> Grammar [(NT "Goal",Alt [Seq [Term (T 'f'),Term (T 'o'),Term (T 'o')]])]
-
-Alternation and recursion.
-
-    Goal ::= "(" Goal ")" | "0";
-    ===> Grammar [(NT "Goal",Alt [Seq [Term (T '('),Term (NT "Goal"),Term (T ')')],Seq [Term (T '0')]])]
-
-Repetition.
-
-    Goal ::= "(" {"0"} ")";
-    ===> Grammar [(NT "Goal",Alt [Seq [Term (T '('),Loop (Alt [Seq [Term (T '0')]]) [],Term (T ')')]])]
-
-    Goal ::= <. arb n .>
-         <. a = 0 .> { "a" <. a += 1 .> } <. a = n .>
-         <. b = 0 .> { "b" <. b += 1 .> } <. b = n .>
-         <. c = 0 .> { "c" <. c += 1 .> } <. c = n .>
-         ;
-    ===> Grammar [(NT "Goal",Alt [Seq [Constraint (Arb (Var "n")),Constraint (UnifyConst (Var "a") 0),Loop (Alt [Seq [Term (T 'a'),Constraint (Inc (Var "a") 1)]]) [UnifyVar (Var "a") (Var "n"),UnifyConst (Var "b") 0],Loop (Alt [Seq [Term (T 'b'),Constraint (Inc (Var "b") 1)]]) [UnifyVar (Var "b") (Var "n"),UnifyConst (Var "c") 0],Loop (Alt [Seq [Term (T 'c'),Constraint (Inc (Var "c") 1)]]) [UnifyVar (Var "c") (Var "n")]]])]
+    -> Functionality "Generate using Fountain Grammar with input parameters" is implemented by
+    -> shell command "bin/fountain generate %(test-body-file) %(test-input-text)"
 
 ### Parsing
 
@@ -87,7 +60,15 @@ Sequence.
 
     Goal ::= "f" "o" "o";
     <=== fog
-    ===> Failure
+    ???> Failure
+
+    Goal ::= "foo";
+    <=== foom
+    ===> Remaining: "m"
+
+    Goal ::= "foo";
+    <=== fo
+    ???> Failure
 
 Alternation and recursion.
 
@@ -97,7 +78,7 @@ Alternation and recursion.
 
     Goal ::= "(" Goal ")" | "0";
     <=== ()
-    ===> Failure
+    ???> Failure
 
     Goal ::= "(" Goal ")" | "0";
     <=== 0
@@ -119,29 +100,63 @@ Repetition.
 
     Goal ::= "(" {"0"} ")";
     <=== (00001)
-    ===> Failure
+    ???> Failure
 
 ### Parsing with Constraints
 
-TODO: Understand why this needs a space afterwards.
+This one succeeds because it satisfies all constraints.
 
-    Goal ::= <. arb n .>
-         <. a = 0 .> { "a" <. a += 1 .> } <. a = n .>
-         <. b = 0 .> { "b" <. b += 1 .> } <. b = n .>
-         <. c = 0 .> { "c" <. c += 1 .> } <. c = n .>
-         ;
-    <=== aaabbbccc 
-    ===> Remaining: " "
+    Goal ::=
+        <. a = 0 .> { "a" <. a += 1 .> } <. a = n .>
+        <. b = 0 .> { "b" <. b += 1 .> } <. b = n .>
+        <. c = 0 .> { "c" <. c += 1 .> } <. c = n .>
+        ;
+    <=== aaabbbccc
+    ===> Success
 
 This one fails at the `<. b = n .>` constraint.
 
-    Goal ::= <. arb n .>
-         <. a = 0 .> { "a" <. a += 1 .> } <. a = n .>
-         <. b = 0 .> { "b" <. b += 1 .> } <. b = n .>
-         <. c = 0 .> { "c" <. c += 1 .> } <. c = n .>
-         ;
+    Goal ::=
+        <. a = 0 .> { "a" <. a += 1 .> } <. a = n .>
+        <. b = 0 .> { "b" <. b += 1 .> } <. b = n .>
+        <. c = 0 .> { "c" <. c += 1 .> } <. c = n .>
+        ;
     <=== aaabbccc
-    ===> Failure
+    ???> Failure
+
+### Parsing with local variables
+
+    Goal ::= "Hi" Sp "there" Sp "world" "!";
+    Sp ::= <. n = 0 .> { " " <. n += 1 .> } <. n > 0 .>;
+    <=== Hi there world!
+    ===> Success
+
+    Goal ::= "Hi" Sp "there" Sp "world" "!";
+    Sp ::= <. n = 0 .> { " " <. n += 1 .> } <. n > 0 .>;
+    <=== Hi     there  world!
+    ===> Success
+
+### Parsing with parameters
+
+    Goal ::= "Hi" Sp<a> "there" Sp<a> "world" "!";
+    Sp<x> ::= <. n = 0 .> { " " <. n += 1 .> } <. n > 0 .> <. n = x .>;
+    <=== Hi there world!
+    ===> Success
+
+    Goal ::= "Hi" Sp<a> "there" Sp<a> "world" "!";
+    Sp<x> ::= <. n = 0 .> { " " <. n += 1 .> } <. n > 0 .> <. n = x .>;
+    <=== Hi   there   world!
+    ===> Success
+
+    Goal ::= "Hi" Sp<a> "there" Sp<a> "world" "!";
+    Sp<n> ::= <. n = 0 .> { " " <. n += 1 .> } <. n > 0 .>;
+    <=== Hi   there  world!
+    ???> Failure
+
+    Goal ::= "Hi" Sp<a> "there" Sp<b> "world" "!";
+    Sp<n> ::= <. n = 0 .> { " " <. n += 1 .> } <. n > 0 .>;
+    <=== Hi   there  world!
+    ===> Success
 
 ### Generation
 
@@ -167,5 +182,48 @@ Repetition.  Without constraints, this will error out.
 
 ### Generation with Constraints
 
+Basic constraint checking during generation of a repeated section.
+
     Goal ::= <. a = 0 .> { "a" <. a += 1 .> } <. a = 5 .>;
     ===> aaaaa
+
+Generation can also fail if constraints cannot be satisfied.
+
+    Goal ::= <. a = 0 .> "a" <. a = 2 .>;
+    ???> Failure
+
+This prior determination may happen outside of the processing of
+the grammar proper.  The Fountain language does not prescribe
+exactly how this must happen.  But it is expected that one way
+is for these values to be provided as input, in much the same
+manner the grammar itself is provided as input.
+
+    -> Tests for functionality "Generate using Fountain Grammar with input parameters"
+
+    Goal ::= <. a = 0 .> "a";
+    <=== b=5
+    ===> a
+
+Thus we can show the language previously parsed can also be generated.
+
+    Goal ::=
+         <. a = 0 .> { "a" <. a += 1 .> } <. a = n .>
+         <. b = 0 .> { "b" <. b += 1 .> } <. b = n .>
+         <. c = 0 .> { "c" <. c += 1 .> } <. c = n .>
+         ;
+    <=== n=3
+    ===> aaabbbccc
+
+### Generation with local variables
+
+    Goal ::= "Hi" Sp "there" Sp "world" "!";
+    Sp ::= <. n = 0 .> { " " <. n += 1 .> } <. n > 0 .>;
+    <=== 
+    ===> Hi there world!
+
+### Generation with parameters
+
+    Goal ::= "Hi" Sp<a> "there" Sp<a> "world" "!";
+    Sp<x> ::= <. n = 0 .> { " " <. n += 1 .> } <. n > 0 .> <. n = x .>;
+    <=== a=3
+    ===> Hi   there   world!

@@ -1,4 +1,4 @@
-module Language.Fountain.Parser (parseFrom, formatResult) where
+module Language.Fountain.Parser (parseFrom, obtainResult) where
 
 import Language.Fountain.Grammar
 import Language.Fountain.Constraint
@@ -10,12 +10,14 @@ data ParseState = Parsing String Store
     deriving (Show, Ord, Eq)
 
 
+expectTerminal :: Char -> ParseState -> ParseState
 expectTerminal tc (Parsing (c:cs) a) = if c == tc then (Parsing cs a) else Failure
+expectTerminal tc (Parsing [] a) = Failure
 expectTerminal tc Failure = Failure
 
-formatResult (Parsing "" _) = "Success"
-formatResult (Parsing s _) = "Remaining: " ++ (show s)
-formatResult Failure = "Failure"
+obtainResult :: ParseState -> Either String String
+obtainResult (Parsing s _) = Right s
+obtainResult Failure = Left "failure"
 
 
 parse :: Grammar -> ParseState -> Expr -> ParseState
@@ -40,9 +42,23 @@ parse g st (Loop l _) = parseLoop g st l where
             Failure -> st
             st'     -> parseLoop g st' e
 
-parse g st (Term t) = parseTerm g st t where
-    parseTerm g st t@(T c) = expectTerminal c st
-    parseTerm g st nt@(NT _) = parse g st (production nt g)
+parse g st (Terminal c) = expectTerminal c st
+parse g Failure (NonTerminal nt actuals) = Failure
+parse g (Parsing text store) (NonTerminal nt actuals) =
+    let
+        formals = getFormals nt g
+        newStore = updateStore actuals formals store empty
+        st' = Parsing text newStore
+        expr' = production nt g
+    in
+        case parse g st' expr' of
+            Parsing text' modifiedStore ->
+                let
+                    reconciledStore = updateStore formals actuals modifiedStore store
+                in
+                    Parsing text' reconciledStore
+            Failure ->
+                Failure
 
 parse g st@(Parsing text store) (Constraint cstr) =
     case applyConstraint cstr store of
@@ -68,11 +84,22 @@ applyConstraint (UnifyVar v w) st =
             Just $ insert v wValue st
         (Nothing, Nothing) ->
             Just st
-applyConstraint (Arb v) st = Just st
 applyConstraint (Inc v i) st =
     Just $ update (\i -> Just (i + 1)) v st
 applyConstraint (Dec v i) st =
     Just $ update (\i -> Just (i - 1)) v st
+applyConstraint (GreaterThan v i) st =
+    case fetch v st of
+        Just value ->
+            if value > i then Just st else Nothing
+        Nothing ->
+            Nothing
+applyConstraint (LessThan v i) st =
+    case fetch v st of
+        Just value ->
+            if value < i then Just st else Nothing
+        Nothing ->
+            Nothing
 
 
 parseFrom :: Grammar -> String -> ParseState
