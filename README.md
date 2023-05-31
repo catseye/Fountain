@@ -64,11 +64,6 @@ several interesting questions that the design of Fountain raises, such as:
 TODO
 ----
 
-### Syntax
-
-*   A syntax for terminals so that `"` can be given as a terminal.
-    Probably any unicode code point by its hex.
-
 ### Semantics
 
 *   Inc, dec, gt, lt, should take either a variable or an integer on the RHS.

@@ -35,7 +35,8 @@ grammar describe the concrete structure of tokens.
                   | ">" IntLit
                   | "<" IntLit.
     NonTerminal ::= <<upper>><<alphanumeric>>*.
-    Terminal ::= <<">><<any except ">>+<<">>.
+    Terminal ::= <<">><<any except ">>+<<">> | <<#>>IntLit.
+    IntLit ::= <<digit>><<digit>>*.
 
 The Tests
 ---------
@@ -56,6 +57,10 @@ The Tests
 Sequence.
 
     Goal ::= "f" "o" "o";
+    <=== foo
+    ===> Success
+
+    Goal ::= "f" #111 #111;
     <=== foo
     ===> Success
 

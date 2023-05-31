@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 module Language.Fountain.Loader where
 
+import Data.Char (chr)
 import Text.ParserCombinators.Parsec
 
 import Language.Fountain.Grammar
@@ -97,7 +98,7 @@ variable = do
     return $ Var s
 
 terminal = do
-    s <- quotedString
+    s <- quotedString <|> charlit
     case s of
         [c] -> return $ Terminal $ c
         _ -> return $ Seq $ map (\c -> Terminal c) s
@@ -146,6 +147,14 @@ quotedString = do
     c2 <- char '"'
     fspaces
     return s
+
+charlit = do
+    char '#'
+    c <- digit
+    cs <- many digit
+    num <- return (read (c:cs) :: Int)
+    fspaces
+    return [chr num]
 
 fspaces = do
     spaces
