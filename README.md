@@ -60,6 +60,7 @@ several interesting questions that the design of Fountain raises, such as:
 *   How can it be ensured that Fountain can express only the CSLs?
 *   Why would we want to support local variables?
 *   How can parameter passing be implemented?
+*   How can we apply randomness during generation?
 
 TODO
 ----
@@ -88,18 +89,7 @@ TODO
 
 ### Aspirational
 
-*   Allow (pseudo)random numbers to be used in generation.
-    Probably we can have a built-in function that takes a seed a produces
-    the next pseudorandom number in the sequence.  And another function for
-    limiting that number to a desirable range (i.e. modulo).
-    The key here is that we must also be able to parse what we've
-    pseudo-randomly generated.  But, another major consideration is that
-    we don't _really_ want to thread this state through explicitly.  We'd
-    like it to be a bit tidier than that.  Actually, this is a significant
-    design space unto itself (e.g. can we use alternation to perform
-    random choice without compromising efficiency?) so it probably
-    deserves an writeup in the design document.
-*   Write the "kennel story" generator in Fountain.  Show that
+*   Write a "kennel story" generator in Fountain.  Show that
     it can parse the same story it generated, in a reasonable
     time, even up to 50,000 words.
 *   Use Fountain's own parsing facilities to parse the Fountain

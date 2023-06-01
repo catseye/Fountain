@@ -263,6 +263,42 @@ to
     with values different than what they were.  Use this new store
     in the new parsing state.
 
+### How can we apply randomness during generation?
+
+When generating from a grammar, we often want to take a "random sample"
+of the space of utterances that the grammar defines.  There are methods
+that have been developed to do this; not just for grammars, but any
+recursive description of a structure; for example [Boltzmann Samplers][].
+
+We should probably go in this direction.
+
+We can thread an explicit pseudo-random number generator through a
+Fountain grammar currently, by passing a parameter up and down through
+the productions, calling a certain production with this parameter to
+advance the pseudorandom generation state, and selecting on this state
+in every relevant alternation operation.
+
+However, this is tedious.
+
+It would be much more convenient, for the Fountain grammar author,
+for the Fountain implementation to choose an alternate
+(pseudo)randomly whenever there are more than one possible
+alternatives available in an alternation operation.
+
+It is also worth thinking about the fact that we must also be able
+to parse what we've pseudo-randomly generated.  But we probably
+don't want to insist that its random choices follows a particular
+generation sequence.  We probably want to consider it acceptable
+even if arbitrary choices were made, as long as they were otherwise
+consistent.  This is another reason to avoid threading an explicit
+PRNG through the grammar.
+
+The technical solution for doing this efficiently seems to be to,
+during generation, at each alteration, find the set of possible
+alternatives (the ones where the guard-constraints evaluate to
+true) and pick randomly from them, using an internal, seedable PRNG.
+
 [Exanoke]: https://catseye.tc/node/Exanoke
 [Tamsin]: https://catseye.tc/node/Tamsin
 [Tandem]: https://catseye.tc/node/Tandem
+[Boltzmann Samplers]: https://github.com/cpressey/Some-Papers-I-Really-Liked#boltzmann-samplers-for-the-random-generation-of-combinatorial-structures
