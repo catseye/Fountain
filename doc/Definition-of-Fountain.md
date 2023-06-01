@@ -156,6 +156,18 @@ Increment and decrement constraints by variable.
     <=== aaa
     ===> Success
 
+Greater-than and less-than constraints by constant.
+
+    Goal ::= <. a = 3 .> <. a > 2 .> <. a < 4 .> "a";
+    <=== a
+    ===> Success
+
+Greater-than and less-than constraints by variable.
+
+    Goal ::= <. a = 3 .> <. h = 4 .> <. l = 2 .> <. a > l .> <. a < h .> "a";
+    <=== a
+    ===> Success
+
 ### Parsing with local variables
 
     Goal ::= "Hi" Sp "there" Sp "world" "!";
@@ -255,6 +267,16 @@ Increment and decrement constraints by variable.
 
     Goal ::= <. a = 3 .> <. b = 4 .> <. c = 5 .> "a" <. a += b .> "a" <. a -= c .> "a" <. a = 2 .>;
     ===> aaa
+
+Greater-than and less-than constraints by constant.
+
+    Goal ::= <. a = 3 .> <. a > 2 .> <. a < 4 .> "a";
+    ===> a
+
+Greater-than and less-than constraints by variable.
+
+    Goal ::= <. a = 3 .> <. h = 4 .> <. l = 2 .> <. a > l .> <. a < h .> "a";
+    ===> a
 
 ### Generation with local variables
 

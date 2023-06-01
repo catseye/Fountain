@@ -35,3 +35,7 @@ updateStore (sourceKey:sourceKeys) (destKey:destKeys) sourceStore destStore =
             Nothing -> destStore
     in
         updateStore sourceKeys destKeys sourceStore destStore'
+
+ceval :: CExpr -> Store -> Maybe Integer
+ceval (CInt i) _ = Just i
+ceval (CVar v) st = fetch v st

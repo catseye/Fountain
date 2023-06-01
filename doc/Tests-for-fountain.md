@@ -48,7 +48,7 @@ Parameters and multiple productions.
 
     Goal ::= "Hi" Sp<a> "there" Sp<b> "world" "!";
     Sp<n> ::= <. n = 0 .> { " " <. n += 1 .> } <. n > 0 .>;
-    ===> Grammar [("Goal",[],Alt [Seq [Seq [Terminal 'H',Terminal 'i'],NonTerminal "Sp" [Var "a"],Seq [Terminal 't',Terminal 'h',Terminal 'e',Terminal 'r',Terminal 'e'],NonTerminal "Sp" [Var "b"],Seq [Terminal 'w',Terminal 'o',Terminal 'r',Terminal 'l',Terminal 'd'],Terminal '!']]),("Sp",[Var "n"],Alt [Seq [Constraint (UnifyConst (Var "n") 0),Loop (Alt [Seq [Terminal ' ',Constraint (Inc (Var "n") (CInt 1))]]) [],Constraint (GreaterThan (Var "n") 0)]])]
+    ===> Grammar [("Goal",[],Alt [Seq [Seq [Terminal 'H',Terminal 'i'],NonTerminal "Sp" [Var "a"],Seq [Terminal 't',Terminal 'h',Terminal 'e',Terminal 'r',Terminal 'e'],NonTerminal "Sp" [Var "b"],Seq [Terminal 'w',Terminal 'o',Terminal 'r',Terminal 'l',Terminal 'd'],Terminal '!']]),("Sp",[Var "n"],Alt [Seq [Constraint (UnifyConst (Var "n") 0),Loop (Alt [Seq [Terminal ' ',Constraint (Inc (Var "n") (CInt 1))]]) [],Constraint (GreaterThan (Var "n") (CInt 0))]])]
 
 Comments.
 

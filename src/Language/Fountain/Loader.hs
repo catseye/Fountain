@@ -86,14 +86,14 @@ dec = do
 gt = do
     v <- variable
     keyword ">"
-    n <- intlit
-    return $ GreaterThan v n
+    e <- cexpr
+    return $ GreaterThan v e
 
 lt = do
     v <- variable
     keyword "<"
-    n <- intlit
-    return $ LessThan v n
+    e <- cexpr
+    return $ LessThan v e
 
 variable = do
     s <- lowWord

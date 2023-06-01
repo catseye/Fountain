@@ -66,7 +66,6 @@ TODO
 
 ### Semantics
 
-*   Gt and lt should take either a variable or an integer on the RHS.
 *   Check constraints on all branches of an alternation.
 
 ### Implementation
