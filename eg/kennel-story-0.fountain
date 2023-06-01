@@ -1,0 +1,22 @@
+//
+// Simplified "Kennel story".
+//
+
+Goal ::=
+    <. dx = 1 .> <. x = 0 .> <. a = 0 .> <. lx = 2 .>
+    {
+        DogMove<x, dx>
+        <. x += dx .>
+        DogTurnAround<x, dx, lx>
+        <. a += 1 .>
+    } <. a = 1000 .>
+    ;
+DogMove<x, dx> ::=
+      <. dx > 0 .> "The dog ran away." #10
+    | <. dx < 0 .> "The dog came back." #10
+    ;
+DogTurnAround<x, dx, lx> ::=
+      <. x > lx .> <. dx -= 2 .> <. lx += 1 .>
+    | <. x < 1 .> <. dx += 2 .>
+    | <. dx += 0 .>
+    ;

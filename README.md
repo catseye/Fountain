@@ -67,6 +67,7 @@ TODO
 ### Semantics
 
 *   Check constraints on all branches of an alternation.
+*   Params on top-level Goal mean those values must be provided from environment.
 
 ### Implementation
 
