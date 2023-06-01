@@ -76,7 +76,6 @@ TODO
 
 ### Documentation
 
-*   Test cases for params on command line when parsing.
 *   Test cases for backtracking during parsing.
 *   Test cases for backtracking during generation.
 

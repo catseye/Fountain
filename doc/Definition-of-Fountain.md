@@ -48,6 +48,9 @@ The Tests
     -> Functionality "Parse using Fountain Grammar" is implemented by
     -> shell command "bin/fountain parse %(test-body-file) %(test-input-file)"
 
+    -> Functionality "Parse using Fountain Grammar with fixed input parameter n=3" is implemented by
+    -> shell command "bin/fountain parse %(test-body-file) %(test-input-file) n=3"
+
     -> Functionality "Generate using Fountain Grammar" is implemented by
     -> shell command "bin/fountain generate %(test-body-file)"
 
@@ -202,6 +205,28 @@ Greater-than and less-than constraints by variable.
     <=== Hi   there  world!
     ===> Success
 
+### Parsing with external parameters
+
+    -> Tests for functionality "Parse using Fountain Grammar with fixed input parameter n=3"
+
+When parsing, parameters can also be supplied from external sources.
+
+    Goal ::=
+        <. a = 0 .> { "a" <. a += 1 .> } <. a = n .>
+        <. b = 0 .> { "b" <. b += 1 .> } <. b = n .>
+        <. c = 0 .> { "c" <. c += 1 .> } <. c = n .>
+        ;
+    <=== aaabbbccc
+    ===> Success
+
+    Goal ::=
+        <. a = 0 .> { "a" <. a += 1 .> } <. a = n .>
+        <. b = 0 .> { "b" <. b += 1 .> } <. b = n .>
+        <. c = 0 .> { "c" <. c += 1 .> } <. c = n .>
+        ;
+    <=== aabbcc
+    ???> Failure
+
 ### Generation
 
     -> Tests for functionality "Generate using Fountain Grammar"
@@ -285,7 +310,7 @@ Greater-than and less-than constraints by variable.
     <=== 
     ===> Hi there world!
 
-### Generation with parameters
+### Generation with external parameters
 
     Goal ::= "Hi" Sp<a> "there" Sp<a> "world" "!";
     Sp<x> ::= <. n = 0 .> { " " <. n += 1 .> } <. n > 0 .> <. n = x .>;
