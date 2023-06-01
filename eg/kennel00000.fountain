@@ -3,6 +3,6 @@
 // `d` must be supplied.
 // ---
 Goal ::= <. x = 0 .> <. a = 0 .> { DogMove<x, d> <. a += 1 .> } <. a = 1000 .>;
-DogMove<x, d> ::= <. d > 0 .> "The dog ran away." #10; <. x += d .>
-                | <. d < 0 .> "The dog came back." #10; <. x += d .>
+DogMove<x, d> ::= <. d > 0 .> "The dog ran away." #10 <. x += 1 .>
+                | <. d < 0 .> "The dog came back." #10 <. x -= 1 .>
                 ;

@@ -67,12 +67,19 @@ TODO
 ### Syntax
 
 *   Allow multiple newlines after a comment.
+*   If there is non-whitespace text remaining after parsing the grammar,
+    make that a syntax error instead of just ignoring it.
 
 ### Semantics
 
 *   Inc, dec, gt, lt, should take either a variable or an integer on the RHS.
+    (`x += dx`).
     Really, the RHS could be some kind of simple expression probably.
 *   Check constraints on all branches of an alternation.
+
+### Implementation
+
+*   Command-line option to start at a different goal symbol.
 
 ### Documentation
 
