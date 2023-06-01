@@ -20,12 +20,9 @@ Sequence.
     Goal ::= "f" "o" "o";
     ===> Grammar [("Goal",[],Alt [Seq [Terminal 'f',Terminal 'o',Terminal 'o']])]
 
-Multi-character terminal and whitespace and comments.
+Multi-character terminals.
 
-    // This is my grammar.
-           
-    Goal ::= "foo";  // You see
-    // how it is
+    Goal ::= "foo";
     ===> Grammar [("Goal",[],Alt [Seq [Seq [Terminal 'f',Terminal 'o',Terminal 'o']]])]
 
 Alternation and recursion.
@@ -52,6 +49,28 @@ Parameters and multiple productions.
     Goal ::= "Hi" Sp<a> "there" Sp<b> "world" "!";
     Sp<n> ::= <. n = 0 .> { " " <. n += 1 .> } <. n > 0 .>;
     ===> Grammar [("Goal",[],Alt [Seq [Seq [Terminal 'H',Terminal 'i'],NonTerminal "Sp" [Var "a"],Seq [Terminal 't',Terminal 'h',Terminal 'e',Terminal 'r',Terminal 'e'],NonTerminal "Sp" [Var "b"],Seq [Terminal 'w',Terminal 'o',Terminal 'r',Terminal 'l',Terminal 'd'],Terminal '!']]),("Sp",[Var "n"],Alt [Seq [Constraint (UnifyConst (Var "n") 0),Loop (Alt [Seq [Terminal ' ',Constraint (Inc (Var "n") 1)]]) [],Constraint (GreaterThan (Var "n") 0)]])]
+
+Comments.
+
+    // This is my grammar.
+    // A comment may come before it.
+    
+    Goal ::= "foo";  // You see
+    // how it is
+    A ::= "f"  // You see
+    "o" // how
+    //
+    // There are many ways to place comments.
+    "//";
+    ===> Grammar [("Goal",[],Alt [Seq [Seq [Terminal 'f',Terminal 'o',Terminal 'o']]]),("A",[],Alt [Seq [Terminal 'f',Terminal 'o',Seq [Terminal '/',Terminal '/']]])]
+
+Misplaced semicolon is a syntax error.
+
+    Goal ::= <. x = 0 .> <. a = 0 .> { DogMove<x, d> <. a += 1 .> } <. a = 1000 .>;
+    DogMove<x, d> ::= <. d > 0 .> "The dog ran away." #10; <. x += 1 .>
+                    | <. d < 0 .> "The dog came back." #10; <. x -= 1 .>
+                    ;
+    ???> unexpected '<'
 
 ### Preprocessing
 

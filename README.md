@@ -64,12 +64,6 @@ several interesting questions that the design of Fountain raises, such as:
 TODO
 ----
 
-### Syntax
-
-*   Allow multiple newlines after a comment.
-*   If there is non-whitespace text remaining after parsing the grammar,
-    make that a syntax error instead of just ignoring it.
-
 ### Semantics
 
 *   Inc, dec, gt, lt, should take either a variable or an integer on the RHS.

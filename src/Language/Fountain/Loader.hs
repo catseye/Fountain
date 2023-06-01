@@ -11,6 +11,8 @@ import Language.Fountain.Constraint
 fountain = do
     fspaces
     ps <- many prod
+    fspaces
+    eof
     return (Grammar ps)
 
 prod = do
@@ -166,7 +168,7 @@ fspaces = do
     return ()
 
 comment = do
-    keyword "//"
+    string "//"
     many $ satisfy (\x -> x /= '\n')
     (do { char '\n'; return ()} <|> eof)
     fspaces
