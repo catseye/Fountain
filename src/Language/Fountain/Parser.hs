@@ -84,10 +84,10 @@ applyConstraint (UnifyVar v w) st =
             Just $ insert v wValue st
         (Nothing, Nothing) ->
             Just st
-applyConstraint (Inc v (CInt delta)) st =
-    Just $ update (\i -> Just (i + delta)) v st
-applyConstraint (Dec v (CInt delta)) st =
-    Just $ update (\i -> Just (i - delta)) v st
+applyConstraint (Inc v e) st =
+    let delta = ceval e st in Just $ update (\i -> Just (i + delta)) v st
+applyConstraint (Dec v e) st =
+    let delta = ceval e st in Just $ update (\i -> Just (i - delta)) v st
 applyConstraint (GreaterThan v i) st =
     case fetch v st of
         Just value ->
@@ -101,6 +101,14 @@ applyConstraint (LessThan v i) st =
         Nothing ->
             Nothing
 
+ceval (CInt i) _ = i
+ceval (CVar v) st =
+    case fetch v st of
+        Just value ->
+            value
+        Nothing ->
+            -- FIXME: decide what to do here
+            0
 
 constructState :: String -> [String] -> ParseState
 constructState text initialParams = Parsing text $ constructStore initialParams

@@ -33,10 +33,11 @@ be rewritten for clarity at some point.
     VarExpr ::= Variable.  -- TODO: In future this might be richer.
     Constraint ::= Variable Constrainer.
     Constrainer ::= "=" (Variable | IntLit)
-                  | "+=" (Variable | IntLit)
-                  | "-=" (Variable | IntLit)
+                  | "+=" CExpr
+                  | "-=" CExpr
                   | ">" IntLit
                   | "<" IntLit.
+    CExpr ::= Variable | IntLit.
     NonTerminal ::= <<upper>><<alphanumeric>>*.
     Terminal ::= <<">> <<any except ">>+ <<">> | <<#>>IntLit.
     IntLit ::= [<<->>] <<digit>>+.
@@ -143,6 +144,18 @@ Integers used in constraints may be negative.
     <=== aa
     ???> Failure
 
+Increment and decrement constraints by constant.
+
+    Goal ::= <. a = 3 .> "a" <. a += 3 .> "a" <. a -= 2 .> "a" <. a = 4 .>;
+    <=== aaa
+    ===> Success
+
+Increment and decrement constraints by variable.
+
+    Goal ::= <. a = 3 .> <. b = 4 .> <. c = 5 .> "a" <. a += b .> "a" <. a -= c .> "a" <. a = 2 .>;
+    <=== aaa
+    ===> Success
+
 ### Parsing with local variables
 
     Goal ::= "Hi" Sp "there" Sp "world" "!";
@@ -232,6 +245,16 @@ Thus we can show the language previously parsed can also be generated.
          ;
     <=== n=3
     ===> aaabbbccc
+
+Increment and decrement constraints by constant.
+
+    Goal ::= <. a = 3 .> "a" <. a += 3 .> "a" <. a -= 2 .> "a" <. a = 4 .>;
+    ===> aaa
+
+Increment and decrement constraints by variable.
+
+    Goal ::= <. a = 3 .> <. b = 4 .> <. c = 5 .> "a" <. a += b .> "a" <. a -= c .> "a" <. a = 2 .>;
+    ===> aaa
 
 ### Generation with local variables
 

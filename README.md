@@ -66,8 +66,7 @@ TODO
 
 ### Semantics
 
-*   Inc, dec, gt, lt, should take either a variable or an integer on the RHS.
-    (`x += dx`).  Add test cases for these.
+*   Gt and lt should take either a variable or an integer on the RHS.
 *   Check constraints on all branches of an alternation.
 
 ### Implementation
