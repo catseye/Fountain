@@ -89,9 +89,6 @@ TODO
 
 ### Aspirational
 
-*   Write a "kennel story" generator in Fountain.  Show that
-    it can parse the same story it generated, in a reasonable
-    time, even up to 50,000 words.
 *   Use Fountain's own parsing facilities to parse the Fountain
     grammar description!  It's not entirely clear to me how much
     of it it could handle.  But it would be close to "writing

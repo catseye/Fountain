@@ -1,5 +1,7 @@
 //
 // Simplified "Kennel story".
+// `steps` should be provided externally.
+// steps=11111 will produce a 50,000 word novel.
 //
 
 Goal ::=
@@ -9,7 +11,7 @@ Goal ::=
         <. x += dx .>
         DogTurnAround<x, dx, lx>
         <. a += 1 .>
-    } <. a = 1000 .>
+    } <. a > steps .> <. x = 0 .>
     ;
 DogMove<x, dx> ::=
       <. dx > 0 .> DogForth<x> #10
