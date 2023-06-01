@@ -35,8 +35,8 @@ be rewritten for clarity at some point.
     Constrainer ::= "=" (Variable | IntLit)
                   | "+=" CExpr
                   | "-=" CExpr
-                  | ">" IntLit
-                  | "<" IntLit.
+                  | ">" CExpr
+                  | "<" CExpr.
     CExpr ::= Variable | IntLit.
     NonTerminal ::= <<upper>><<alphanumeric>>*.
     Terminal ::= <<">> <<any except ">>+ <<">> | <<#>>IntLit.

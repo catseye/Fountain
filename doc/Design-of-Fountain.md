@@ -298,6 +298,22 @@ during generation, at each alteration, find the set of possible
 alternatives (the ones where the guard-constraints evaluate to
 true) and pick randomly from them, using an internal, seedable PRNG.
 
+### How should parameters with different data types be handled?
+
+Currently, all parameters are values of unbounded integer type.
+This is theoretically sufficient for all context-sensitive parsing
+and generation tasks, but in practice it is terribly inconvenient.
+
+It would be desirable for parameters to take on other data types.
+This would include simple data types such as strings, and compound
+data types such as lists of values, sets of values, and dictionaries
+mapping values to values.
+
+This raises a number of design questions though:
+
+*   When parameters are declared, do we also want to declare their types?
+*   Might we want variables of "string produced by a certain production" type?
+
 [Exanoke]: https://catseye.tc/node/Exanoke
 [Tamsin]: https://catseye.tc/node/Tamsin
 [Tandem]: https://catseye.tc/node/Tandem

@@ -61,17 +61,21 @@ several interesting questions that the design of Fountain raises, such as:
 *   Why would we want to support local variables?
 *   How can parameter passing be implemented?
 *   How can we apply randomness during generation?
+*   How should parameters with different data types be handled?
 
 TODO
 ----
 
 ### Semantics
 
-*   Check constraints on all branches of an alternation.
+*   Check constraints on all branches of each alternation, select pseudorandomly
+    (and efficiently) from the set of alternatives which are permissible.
 *   Params on top-level Goal mean those values must be provided from environment.
 
 ### Implementation
 
+*   Flatten nested Seq's and Alt's in the AST (to support the
+    alternative-selection strategy described above).
 *   Command-line option to start at a different goal symbol.
 *   Pretty-printer, so that the implementation tests can be more robust.
 
@@ -79,13 +83,6 @@ TODO
 
 *   Test cases for backtracking during parsing.
 *   Test cases for backtracking during generation.
-
-### To think about
-
-*   When parameters are declared, do we also want to declare their types?
-*   Will we want variables of string type?
-*   Will we want variables of "string produced by a certain production" type?
-*   What other types might we want?  Lists and maps and sets seem likely.
 
 ### Aspirational
 
@@ -99,6 +96,17 @@ TODO
 
 History
 -------
+
+### 0.3
+
+Comments and characters terminals given by Unicode code point were
+added to the Fountain syntax.
+
+Inc, dec, greater than and less than constraints can take a simple
+expression (an integer literal or a variable name) on the right-hand
+side.
+
+When parsing, parameters can also be supplied from external sources.
 
 ### 0.2
 
