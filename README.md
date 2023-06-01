@@ -67,13 +67,13 @@ TODO
 ### Semantics
 
 *   Inc, dec, gt, lt, should take either a variable or an integer on the RHS.
-    (`x += dx`).
-    Really, the RHS could be some kind of simple expression probably.
+    (`x += dx`).  Add test cases for these.
 *   Check constraints on all branches of an alternation.
 
 ### Implementation
 
 *   Command-line option to start at a different goal symbol.
+*   Pretty-printer, so that the implementation tests can be more robust.
 
 ### Documentation
 

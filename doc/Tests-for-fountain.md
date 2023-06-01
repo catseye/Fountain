@@ -22,8 +22,8 @@ Sequence.
 
 Multi-character terminals.
 
-    Goal ::= "foo";
-    ===> Grammar [("Goal",[],Alt [Seq [Seq [Terminal 'f',Terminal 'o',Terminal 'o']]])]
+    Goal ::= "foo" "bar";
+    ===> Grammar [("Goal",[],Alt [Seq [Seq [Terminal 'f',Terminal 'o',Terminal 'o'],Seq [Terminal 'b',Terminal 'a',Terminal 'r']]])]
 
 Alternation and recursion.
 
@@ -42,13 +42,13 @@ Constraints.
          <. b = 0 .> { "b" <. b += 1 .> } <. b = n .>
          <. c = 0 .> { "c" <. c += 1 .> } <. c = n .>
          ;
-    ===> Grammar [("Goal",[],Alt [Seq [Constraint (UnifyConst (Var "a") 0),Loop (Alt [Seq [Terminal 'a',Constraint (Inc (Var "a") 1)]]) [],Constraint (UnifyVar (Var "a") (Var "n")),Constraint (UnifyConst (Var "b") 0),Loop (Alt [Seq [Terminal 'b',Constraint (Inc (Var "b") 1)]]) [],Constraint (UnifyVar (Var "b") (Var "n")),Constraint (UnifyConst (Var "c") 0),Loop (Alt [Seq [Terminal 'c',Constraint (Inc (Var "c") 1)]]) [],Constraint (UnifyVar (Var "c") (Var "n"))]])]
+    ===> Grammar [("Goal",[],Alt [Seq [Constraint (UnifyConst (Var "a") 0),Loop (Alt [Seq [Terminal 'a',Constraint (Inc (Var "a") (CInt 1))]]) [],Constraint (UnifyVar (Var "a") (Var "n")),Constraint (UnifyConst (Var "b") 0),Loop (Alt [Seq [Terminal 'b',Constraint (Inc (Var "b") (CInt 1))]]) [],Constraint (UnifyVar (Var "b") (Var "n")),Constraint (UnifyConst (Var "c") 0),Loop (Alt [Seq [Terminal 'c',Constraint (Inc (Var "c") (CInt 1))]]) [],Constraint (UnifyVar (Var "c") (Var "n"))]])]
 
 Parameters and multiple productions.
 
     Goal ::= "Hi" Sp<a> "there" Sp<b> "world" "!";
     Sp<n> ::= <. n = 0 .> { " " <. n += 1 .> } <. n > 0 .>;
-    ===> Grammar [("Goal",[],Alt [Seq [Seq [Terminal 'H',Terminal 'i'],NonTerminal "Sp" [Var "a"],Seq [Terminal 't',Terminal 'h',Terminal 'e',Terminal 'r',Terminal 'e'],NonTerminal "Sp" [Var "b"],Seq [Terminal 'w',Terminal 'o',Terminal 'r',Terminal 'l',Terminal 'd'],Terminal '!']]),("Sp",[Var "n"],Alt [Seq [Constraint (UnifyConst (Var "n") 0),Loop (Alt [Seq [Terminal ' ',Constraint (Inc (Var "n") 1)]]) [],Constraint (GreaterThan (Var "n") 0)]])]
+    ===> Grammar [("Goal",[],Alt [Seq [Seq [Terminal 'H',Terminal 'i'],NonTerminal "Sp" [Var "a"],Seq [Terminal 't',Terminal 'h',Terminal 'e',Terminal 'r',Terminal 'e'],NonTerminal "Sp" [Var "b"],Seq [Terminal 'w',Terminal 'o',Terminal 'r',Terminal 'l',Terminal 'd'],Terminal '!']]),("Sp",[Var "n"],Alt [Seq [Constraint (UnifyConst (Var "n") 0),Loop (Alt [Seq [Terminal ' ',Constraint (Inc (Var "n") (CInt 1))]]) [],Constraint (GreaterThan (Var "n") 0)]])]
 
 Comments.
 
@@ -96,4 +96,4 @@ Repetition.
          <. b = 0 .> { "b" <. b += 1 .> } <. b = n .>
          <. c = 0 .> { "c" <. c += 1 .> } <. c = n .>
          ;
-    ===> Grammar [("Goal",[],Alt [Seq [Constraint (UnifyConst (Var "a") 0),Loop (Alt [Seq [Terminal 'a',Constraint (Inc (Var "a") 1)]]) [UnifyVar (Var "a") (Var "n"),UnifyConst (Var "b") 0],Loop (Alt [Seq [Terminal 'b',Constraint (Inc (Var "b") 1)]]) [UnifyVar (Var "b") (Var "n"),UnifyConst (Var "c") 0],Loop (Alt [Seq [Terminal 'c',Constraint (Inc (Var "c") 1)]]) [UnifyVar (Var "c") (Var "n")]]])]
+    ===> Grammar [("Goal",[],Alt [Seq [Constraint (UnifyConst (Var "a") 0),Loop (Alt [Seq [Terminal 'a',Constraint (Inc (Var "a") (CInt 1))]]) [UnifyVar (Var "a") (Var "n"),UnifyConst (Var "b") 0],Loop (Alt [Seq [Terminal 'b',Constraint (Inc (Var "b") (CInt 1))]]) [UnifyVar (Var "b") (Var "n"),UnifyConst (Var "c") 0],Loop (Alt [Seq [Terminal 'c',Constraint (Inc (Var "c") (CInt 1))]]) [UnifyVar (Var "c") (Var "n")]]])]

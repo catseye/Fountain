@@ -33,8 +33,8 @@ be rewritten for clarity at some point.
     VarExpr ::= Variable.  -- TODO: In future this might be richer.
     Constraint ::= Variable Constrainer.
     Constrainer ::= "=" (Variable | IntLit)
-                  | "+=" IntLit
-                  | "-=" IntLit
+                  | "+=" (Variable | IntLit)
+                  | "-=" (Variable | IntLit)
                   | ">" IntLit
                   | "<" IntLit.
     NonTerminal ::= <<upper>><<alphanumeric>>*.

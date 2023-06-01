@@ -98,10 +98,10 @@ applyConstraint (UnifyVar v w) st =
             Just $ insert v wValue st
         (Nothing, Nothing) ->
             Just st
-applyConstraint (Inc v i) st =
-    Just $ update (\i -> Just (i + 1)) v st
-applyConstraint (Dec v i) st =
-    Just $ update (\i -> Just (i - 1)) v st
+applyConstraint (Inc v (CInt delta)) st =
+    Just $ update (\i -> Just (i + delta)) v st
+applyConstraint (Dec v (CInt delta)) st =
+    Just $ update (\i -> Just (i - delta)) v st
 applyConstraint (GreaterThan v i) st =
     case fetch v st of
         Just value ->

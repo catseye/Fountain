@@ -74,14 +74,14 @@ unifyVar = do
 inc = do
     v <- variable
     keyword "+="
-    n <- intlit
-    return $ Inc v n
+    e <- cexpr
+    return $ Inc v e
 
 dec = do
     v <- variable
     keyword "-="
-    n <- intlit
-    return $ Dec v n
+    e <- cexpr
+    return $ Dec v e
 
 gt = do
     v <- variable
@@ -98,6 +98,16 @@ lt = do
 variable = do
     s <- lowWord
     return $ Var s
+
+cexpr = (try cIntExpr) <|> cVarExpr
+
+cIntExpr = do
+    i <- intlit
+    return $ CInt i
+
+cVarExpr = do
+    v <- variable
+    return $ CVar v
 
 terminal = do
     s <- quotedString <|> charlit
