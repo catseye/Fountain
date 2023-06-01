@@ -1,4 +1,4 @@
-module Language.Fountain.Parser (parseFrom, obtainResult) where
+module Language.Fountain.Parser (constructState, parseFrom, obtainResult) where
 
 import Language.Fountain.Grammar
 import Language.Fountain.Constraint
@@ -102,5 +102,8 @@ applyConstraint (LessThan v i) st =
             Nothing
 
 
-parseFrom :: Grammar -> String -> ParseState
-parseFrom g s = parse g (Parsing s empty) (production (startSymbol g) g)
+constructState :: String -> [String] -> ParseState
+constructState text initialParams = Parsing text $ constructStore initialParams
+
+parseFrom :: Grammar -> ParseState -> ParseState
+parseFrom g st = parse g st (production (startSymbol g) g)

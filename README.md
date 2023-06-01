@@ -64,19 +64,19 @@ several interesting questions that the design of Fountain raises, such as:
 TODO
 ----
 
+### Syntax
+
+*   Allow multiple newlines after a comment.
+
 ### Semantics
 
 *   Inc, dec, gt, lt, should take either a variable or an integer on the RHS.
     Really, the RHS could be some kind of simple expression probably.
 *   Check constraints on all branches of an alternation.
 
-### Implementation
-
-*   Allow params on command line when parsing, too.
-*   Better usage message.
-
 ### Documentation
 
+*   Test cases for params on command line when parsing.
 *   Test cases for backtracking during parsing.
 *   Test cases for backtracking during generation.
 
