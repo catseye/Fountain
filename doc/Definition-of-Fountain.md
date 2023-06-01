@@ -14,7 +14,10 @@ between tokens (and for this purpose, comments, which are introduced
 by `//` and extend until the end of the line, count as whitespace).
 Some whitespace must appear between tokens if the tokens would otherwise
 be interpreted as a single token.  The bottommost productions in the
-grammar describe the concrete structure of tokens.
+grammar describe the concrete structure of tokens; in these productions
+no whitespace may appear between successive concrete terminals (the
+symbols enclosed in big angle quotes.)  Note, this paragraph should
+be rewritten for clarity at some point.
 
     Grammar ::= {Production}.
     Production ::= NonTerminal [Formals] "::=" {Expr0}.
@@ -35,8 +38,8 @@ grammar describe the concrete structure of tokens.
                   | ">" IntLit
                   | "<" IntLit.
     NonTerminal ::= <<upper>><<alphanumeric>>*.
-    Terminal ::= <<">><<any except ">>+<<">> | <<#>>IntLit.
-    IntLit ::= <<digit>><<digit>>*.
+    Terminal ::= <<">> <<any except ">>+ <<">> | <<#>>IntLit.
+    IntLit ::= [<<->>] <<digit>>+.
 
 The Tests
 ---------
@@ -128,6 +131,16 @@ This one fails at the `<. b = n .>` constraint.
         <. c = 0 .> { "c" <. c += 1 .> } <. c = n .>
         ;
     <=== aaabbccc
+    ???> Failure
+
+Integers used in constraints may be negative.
+
+    Goal ::= <. a = -3 .> { "a" <. a += 1 .> } <. a = 0 .>;
+    <=== aaa
+    ===> Success
+
+    Goal ::= <. a = -3 .> { "a" <. a += 1 .> } <. a = 0 .>;
+    <=== aa
     ???> Failure
 
 ### Parsing with local variables

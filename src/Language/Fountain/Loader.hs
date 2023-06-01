@@ -135,16 +135,21 @@ lowWord = do
     return (c:s)
 
 intlit = do
+    sign <- option 1 leadingMinus
     c <- digit
     cs <- many digit
-    num <- return (read (c:cs) :: Integer)
     fspaces
-    return num
+    return ((read (c:cs) :: Integer) * sign)
+
+leadingMinus :: Parser Integer
+leadingMinus = do
+    char '-'
+    return (-1)
 
 quotedString = do
-    c1 <- char '"'
+    char '"'
     s <- many $ satisfy (\x -> x /= '"')
-    c2 <- char '"'
+    char '"'
     fspaces
     return s
 
@@ -152,9 +157,8 @@ charlit = do
     char '#'
     c <- digit
     cs <- many digit
-    num <- return (read (c:cs) :: Int)
     fspaces
-    return [chr num]
+    return [chr (read (c:cs) :: Int)]
 
 fspaces = do
     spaces
