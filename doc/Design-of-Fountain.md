@@ -214,6 +214,16 @@ could just linear-bound the amount of storage used by a Fountain
 grammar in the worst case.  Maybe; I haven't thought much about
 this yet.  My initial impression is that it seems a bit artificial.
 
+#### Does all this talk of complexity classes even mean anything?
+
+In the end it means very little.  The whole purpose of Fountain is
+to permit the construction of grammars that can both parse and
+generate _efficiently_.  So I think we can reasonably assume that
+most of the time the grammar author will aim to construct something
+that runs in polynomial time, even though they have all of PSPACE
+at their disposal.  Restricting Fountain to express exactly the
+CSLs is more of a theoretically satisfying goal than a practical one.
+
 ### Why would we want to support local variables?
 
 Say we want to parse any amounts of whitespace between tokens, but
