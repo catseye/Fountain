@@ -58,6 +58,7 @@ several interesting questions that the design of Fountain raises, such as:
 *   Doesn't a Context-Sensitive Grammar (CSG) do what Fountain does?
 *   Isn't Fountain really a programming language in disguise?
 *   How can it be ensured that Fountain can express only the CSLs?
+*   Should we think of constraints as relational operators?
 *   Why would we want to support local variables?
 *   How can parameter passing be implemented?
 *   How can we apply randomness during generation?

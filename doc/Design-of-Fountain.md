@@ -214,6 +214,15 @@ could just linear-bound the amount of storage used by a Fountain
 grammar in the worst case.  Maybe; I haven't thought much about
 this yet.  My initial impression is that it seems a bit artificial.
 
+Thinking about it a bit more, to make this work for both parsing
+and generation, what we really need to do is to show the context
+and the string (whether it be the input for parsing or the result
+of generation) are related in size linearly -- that one is never
+more than _k_ times bigger than the other, where _k_ is a constant
+for the grammar).  It might be feasible to do that in simple cases.
+My intuition at the moment is that it surely breaks down at some
+point, but it's not immediately clear where that point begins.
+
 #### Does all this talk of complexity classes even mean anything?
 
 In the end it means very little.  The whole purpose of Fountain is
@@ -223,6 +232,35 @@ most of the time the grammar author will aim to construct something
 that runs in polynomial time, even though they have all of PSPACE
 at their disposal.  Restricting Fountain to express exactly the
 CSLs is more of a theoretically satisfying goal than a practical one.
+
+### Should we think of constraints as relational operators?
+
+The design of Fountain came from a path of exploration that led
+through relational programming.  I wanted a grammar formalism that
+could be run both "forwards" and "backwards", and logic programming
+languages such as Prolog support that (and relational programming
+languages such as miniKanren support it even moreso.)  So when I
+was putting together the basic parts of Fountain, my idea was that
+a constraint like `<. a += 1 .>` would be something like
+`A1 is A + 1` in Prolog; more specifically, it would relate the parse
+state on the LHS of `<. a += 1 .>` to the parse state on the RHS of
+it, specifying that on the RHS, the variable `a` is one more than it
+is on the LHS.  The string of terms in the production could then be
+just as easily interpreted right-to-left as left-to-right.
+
+And I still think it is conceptually advantageous, and in some sense
+proper, to think of these constraints this way.  However, it turns out
+that it's not all that necessary to look at them this way when actually
+implementing Fountain.  Whether parsing or generating, the terms
+of a grammar production are processed left-to-right, and the variable
+in a rule such as `<. a += 1 .>` really can be updated in place
+(which is exactly what we want, to support efficient processing)
+and so really is an updatable variable.
+
+In the end, I probably could have come to a design very similar
+to the present design of Fountain without travelling though the
+territory of relational programming at all, simply by taking
+[ambinate.py][] and defunctionalizing it.
 
 ### Why would we want to support local variables?
 
@@ -328,3 +366,4 @@ This raises a number of design questions though:
 [Tamsin]: https://catseye.tc/node/Tamsin
 [Tandem]: https://catseye.tc/node/Tandem
 [Boltzmann Samplers]: https://github.com/cpressey/Some-Papers-I-Really-Liked#boltzmann-samplers-for-the-random-generation-of-combinatorial-structures
+[ambinate.py]: https://gist.github.com/cpressey/dd3f63eda91b33e429fa
