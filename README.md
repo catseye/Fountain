@@ -58,57 +58,35 @@ several interesting questions that the design of Fountain raises, such as:
 *   Doesn't a Context-Sensitive Grammar (CSG) do what Fountain does?
 *   Isn't Fountain really a programming language in disguise?
 *   How can it be ensured that Fountain can express only the CSLs?
+*   Should we think of constraints as relational operators?
 *   Why would we want to support local variables?
 *   How can parameter passing be implemented?
+*   How can we apply randomness during generation?
+*   How should parameters with different data types be handled?
 
 TODO
 ----
 
-### Syntax
-
-*   A syntax for comments.
-*   A syntax for terminals so that `"` can be given as a terminal.
-    Probably any unicode code point by its hex.
-
 ### Semantics
 
-*   Inc, dec, gt, lt, should take either a variable or an integer on the RHS.
-    Really, the RHS could be some kind of simple expression probably.
-*   Check constraints on all branches of an alternation.
+*   Check constraints on all branches of each alternation, select pseudorandomly
+    (and efficiently) from the set of alternatives which are permissible.
+*   Params on top-level Goal mean those values must be provided from environment.
 
 ### Implementation
 
-*   Allow params on command line when parsing, too.
-*   Better usage message.
+*   Flatten nested Seq's and Alt's in the AST (to support the
+    alternative-selection strategy described above).
+*   Command-line option to start at a different goal symbol.
+*   Pretty-printer, so that the implementation tests can be more robust.
 
 ### Documentation
 
 *   Test cases for backtracking during parsing.
 *   Test cases for backtracking during generation.
 
-### To think about
-
-*   When parameters are declared, do we also want to declare their types?
-*   Will we want variables of string type?
-*   Will we want variables of "string produced by a certain production" type?
-*   What other types might we want?  Lists and maps and sets seem likely.
-
 ### Aspirational
 
-*   Allow (pseudo)random numbers to be used in generation.
-    Probably we can have a built-in function that takes a seed a produces
-    the next pseudorandom number in the sequence.  And another function for
-    limiting that number to a desirable range (i.e. modulo).
-    The key here is that we must also be able to parse what we've
-    pseudo-randomly generated.  But, another major consideration is that
-    we don't _really_ want to thread this state through explicitly.  We'd
-    like it to be a bit tidier than that.  Actually, this is a significant
-    design space unto itself (e.g. can we use alternation to perform
-    random choice without compromising efficiency?) so it probably
-    deserves an writeup in the design document.
-*   Write the "kennel story" generator in Fountain.  Show that
-    it can parse the same story it generated, in a reasonable
-    time, even up to 50,000 words.
 *   Use Fountain's own parsing facilities to parse the Fountain
     grammar description!  It's not entirely clear to me how much
     of it it could handle.  But it would be close to "writing
@@ -119,6 +97,23 @@ TODO
 
 History
 -------
+
+### 0.3
+
+Comments and characters terminals given by Unicode code point were
+added to the Fountain syntax.
+
+Inc, dec, greater than and less than constraints can take a simple
+expression (an integer literal or a variable name) on the right-hand
+side.
+
+When parsing, parameters can also be supplied from external sources.
+
+Example Fountain grammar describing a heartwarming and
+context-sensitive novel about a wayward animal companion has been
+included in the distribution.
+
+Distribution placed under BSD license.
 
 ### 0.2
 

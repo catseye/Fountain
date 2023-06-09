@@ -1,4 +1,4 @@
-module Language.Fountain.Parser (parseFrom, obtainResult) where
+module Language.Fountain.Parser (constructState, parseFrom, obtainResult) where
 
 import Language.Fountain.Grammar
 import Language.Fountain.Constraint
@@ -84,23 +84,34 @@ applyConstraint (UnifyVar v w) st =
             Just $ insert v wValue st
         (Nothing, Nothing) ->
             Just st
-applyConstraint (Inc v i) st =
-    Just $ update (\i -> Just (i + 1)) v st
-applyConstraint (Dec v i) st =
-    Just $ update (\i -> Just (i - 1)) v st
-applyConstraint (GreaterThan v i) st =
-    case fetch v st of
-        Just value ->
-            if value > i then Just st else Nothing
+applyConstraint (Inc v e) st =
+    case ceval e st of
+        Just delta ->
+            Just $ update (\i -> Just (i + delta)) v st
         Nothing ->
             Nothing
-applyConstraint (LessThan v i) st =
-    case fetch v st of
-        Just value ->
-            if value < i then Just st else Nothing
+applyConstraint (Dec v e) st =
+    case ceval e st of
+        Just delta ->
+            Just $ update (\i -> Just (i - delta)) v st
         Nothing ->
+            Nothing
+applyConstraint (GreaterThan v e) st =
+    case (fetch v st, ceval e st) of
+        (Just value, Just target) ->
+            if value > target then Just st else Nothing
+        _ ->
+            Nothing
+applyConstraint (LessThan v e) st =
+    case (fetch v st, ceval e st) of
+        (Just value, Just target) ->
+            if value < target then Just st else Nothing
+        _ ->
             Nothing
 
 
-parseFrom :: Grammar -> String -> ParseState
-parseFrom g s = parse g (Parsing s empty) (production (startSymbol g) g)
+constructState :: String -> [String] -> ParseState
+constructState text initialParams = Parsing text $ constructStore initialParams
+
+parseFrom :: Grammar -> ParseState -> ParseState
+parseFrom g st = parse g st (production (startSymbol g) g)

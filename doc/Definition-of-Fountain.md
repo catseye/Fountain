@@ -10,10 +10,14 @@ Grammar of Fountain
 -------------------
 
 This grammar is written in EBNF.  Any amount of whitespace may occur
-between tokens (and for this purpose, comments count as whitespace).
+between tokens (and for this purpose, comments, which are introduced
+by `//` and extend until the end of the line, count as whitespace).
 Some whitespace must appear between tokens if the tokens would otherwise
 be interpreted as a single token.  The bottommost productions in the
-grammar describe the concrete structure of tokens.
+grammar describe the concrete structure of tokens; in these productions
+no whitespace may appear between successive concrete terminals (the
+symbols enclosed in big angle quotes.)  Note, this paragraph should
+be rewritten for clarity at some point.
 
     Grammar ::= {Production}.
     Production ::= NonTerminal [Formals] "::=" {Expr0}.
@@ -29,18 +33,23 @@ grammar describe the concrete structure of tokens.
     VarExpr ::= Variable.  -- TODO: In future this might be richer.
     Constraint ::= Variable Constrainer.
     Constrainer ::= "=" (Variable | IntLit)
-                  | "+=" IntLit
-                  | "-=" IntLit
-                  | ">" IntLit
-                  | "<" IntLit.
+                  | "+=" CExpr
+                  | "-=" CExpr
+                  | ">" CExpr
+                  | "<" CExpr.
+    CExpr ::= Variable | IntLit.
     NonTerminal ::= <<upper>><<alphanumeric>>*.
-    Terminal ::= <<">><<any except ">>+<<">>.
+    Terminal ::= <<">> <<any except ">>+ <<">> | <<#>>IntLit.
+    IntLit ::= [<<->>] <<digit>>+.
 
 The Tests
 ---------
 
     -> Functionality "Parse using Fountain Grammar" is implemented by
     -> shell command "bin/fountain parse %(test-body-file) %(test-input-file)"
+
+    -> Functionality "Parse using Fountain Grammar with fixed input parameter n=3" is implemented by
+    -> shell command "bin/fountain parse %(test-body-file) %(test-input-file) n=3"
 
     -> Functionality "Generate using Fountain Grammar" is implemented by
     -> shell command "bin/fountain generate %(test-body-file)"
@@ -55,6 +64,10 @@ The Tests
 Sequence.
 
     Goal ::= "f" "o" "o";
+    <=== foo
+    ===> Success
+
+    Goal ::= "f" #111 #111;
     <=== foo
     ===> Success
 
@@ -124,6 +137,40 @@ This one fails at the `<. b = n .>` constraint.
     <=== aaabbccc
     ???> Failure
 
+Integers used in constraints may be negative.
+
+    Goal ::= <. a = -3 .> { "a" <. a += 1 .> } <. a = 0 .>;
+    <=== aaa
+    ===> Success
+
+    Goal ::= <. a = -3 .> { "a" <. a += 1 .> } <. a = 0 .>;
+    <=== aa
+    ???> Failure
+
+Increment and decrement constraints by constant.
+
+    Goal ::= <. a = 3 .> "a" <. a += 3 .> "a" <. a -= 2 .> "a" <. a = 4 .>;
+    <=== aaa
+    ===> Success
+
+Increment and decrement constraints by variable.
+
+    Goal ::= <. a = 3 .> <. b = 4 .> <. c = 5 .> "a" <. a += b .> "a" <. a -= c .> "a" <. a = 2 .>;
+    <=== aaa
+    ===> Success
+
+Greater-than and less-than constraints by constant.
+
+    Goal ::= <. a = 3 .> <. a > 2 .> <. a < 4 .> "a";
+    <=== a
+    ===> Success
+
+Greater-than and less-than constraints by variable.
+
+    Goal ::= <. a = 3 .> <. h = 4 .> <. l = 2 .> <. a > l .> <. a < h .> "a";
+    <=== a
+    ===> Success
+
 ### Parsing with local variables
 
     Goal ::= "Hi" Sp "there" Sp "world" "!";
@@ -157,6 +204,28 @@ This one fails at the `<. b = n .>` constraint.
     Sp<n> ::= <. n = 0 .> { " " <. n += 1 .> } <. n > 0 .>;
     <=== Hi   there  world!
     ===> Success
+
+### Parsing with external parameters
+
+    -> Tests for functionality "Parse using Fountain Grammar with fixed input parameter n=3"
+
+When parsing, parameters can also be supplied from external sources.
+
+    Goal ::=
+        <. a = 0 .> { "a" <. a += 1 .> } <. a = n .>
+        <. b = 0 .> { "b" <. b += 1 .> } <. b = n .>
+        <. c = 0 .> { "c" <. c += 1 .> } <. c = n .>
+        ;
+    <=== aaabbbccc
+    ===> Success
+
+    Goal ::=
+        <. a = 0 .> { "a" <. a += 1 .> } <. a = n .>
+        <. b = 0 .> { "b" <. b += 1 .> } <. b = n .>
+        <. c = 0 .> { "c" <. c += 1 .> } <. c = n .>
+        ;
+    <=== aabbcc
+    ???> Failure
 
 ### Generation
 
@@ -214,6 +283,26 @@ Thus we can show the language previously parsed can also be generated.
     <=== n=3
     ===> aaabbbccc
 
+Increment and decrement constraints by constant.
+
+    Goal ::= <. a = 3 .> "a" <. a += 3 .> "a" <. a -= 2 .> "a" <. a = 4 .>;
+    ===> aaa
+
+Increment and decrement constraints by variable.
+
+    Goal ::= <. a = 3 .> <. b = 4 .> <. c = 5 .> "a" <. a += b .> "a" <. a -= c .> "a" <. a = 2 .>;
+    ===> aaa
+
+Greater-than and less-than constraints by constant.
+
+    Goal ::= <. a = 3 .> <. a > 2 .> <. a < 4 .> "a";
+    ===> a
+
+Greater-than and less-than constraints by variable.
+
+    Goal ::= <. a = 3 .> <. h = 4 .> <. l = 2 .> <. a > l .> <. a < h .> "a";
+    ===> a
+
 ### Generation with local variables
 
     Goal ::= "Hi" Sp "there" Sp "world" "!";
@@ -221,7 +310,7 @@ Thus we can show the language previously parsed can also be generated.
     <=== 
     ===> Hi there world!
 
-### Generation with parameters
+### Generation with external parameters
 
     Goal ::= "Hi" Sp<a> "there" Sp<a> "world" "!";
     Sp<x> ::= <. n = 0 .> { " " <. n += 1 .> } <. n > 0 .> <. n = x .>;

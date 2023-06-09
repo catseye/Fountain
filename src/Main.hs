@@ -36,10 +36,11 @@ main = do
             grammar <- loadSource grammarFileName
             let grammar' = Preprocessor.preprocessGrammar grammar
             output $ show grammar'
-        ["parse", grammarFileName, textFileName] -> do
+        ("parse":grammarFileName:textFileName:initialParams) -> do
             grammar <- loadSource grammarFileName
             text <- loadText textFileName
-            let finalState = Parser.parseFrom grammar text
+            let initialState = Parser.constructState text initialParams
+            let finalState = Parser.parseFrom grammar initialState
             output $ if (dumpState flags) then show finalState else formatParseResult $ Parser.obtainResult finalState
             exitWith $ either (\msg -> ExitFailure 1) (\remaining -> ExitSuccess) $ Parser.obtainResult finalState
         ("generate":grammarFileName:initialParams) -> do
@@ -49,9 +50,21 @@ main = do
             let finalState = Generator.generateFrom grammar' initialState
             output $ if (dumpState flags) then show finalState else formatGenerateResult $ Generator.obtainResult finalState
             exitWith $ either (\msg -> ExitFailure 1) (\remaining -> ExitSuccess) $ Generator.obtainResult finalState
-        _ -> do
-            abortWith "Usage: fountain {flags} (load|preprocess|parse|generate) <input-filename> [<input-text>]"
+        _ -> usage
 
+usage = abortWith
+    (
+        "Usage:\n" ++
+        "    fountain {flags} load <fountain-filename>\n" ++
+        "    fountain {flags} preprocess <fountain-filename>\n" ++
+        "    fountain {flags} parse <fountain-filename> <text-filename> {params}\n" ++
+        "    fountain {flags} generate <fountain-filename> {params}\n" ++
+        "  where {flags} is any of:\n" ++
+        "    --dump-state: dump the internal parse/generate state as part of output\n" ++
+        "    --suppress-newline: don't output a final newline after output\n" ++
+        "  and {params} is a list of arguments of the form `var=value` with which\n" ++
+        "    variables will be initialized in the initial parse/generate state."
+    )
 
 loadSource fileName = do
     handle <- openFile fileName ReadMode

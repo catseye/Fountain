@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 module Language.Fountain.Loader where
 
+import Data.Char (chr)
 import Text.ParserCombinators.Parsec
 
 import Language.Fountain.Grammar
@@ -8,7 +9,10 @@ import Language.Fountain.Constraint
 
 
 fountain = do
+    fspaces
     ps <- many prod
+    fspaces
+    eof
     return (Grammar ps)
 
 prod = do
@@ -70,33 +74,43 @@ unifyVar = do
 inc = do
     v <- variable
     keyword "+="
-    n <- intlit
-    return $ Inc v n
+    e <- cexpr
+    return $ Inc v e
 
 dec = do
     v <- variable
     keyword "-="
-    n <- intlit
-    return $ Dec v n
+    e <- cexpr
+    return $ Dec v e
 
 gt = do
     v <- variable
     keyword ">"
-    n <- intlit
-    return $ GreaterThan v n
+    e <- cexpr
+    return $ GreaterThan v e
 
 lt = do
     v <- variable
     keyword "<"
-    n <- intlit
-    return $ LessThan v n
+    e <- cexpr
+    return $ LessThan v e
 
 variable = do
     s <- lowWord
     return $ Var s
 
+cexpr = (try cIntExpr) <|> cVarExpr
+
+cIntExpr = do
+    i <- intlit
+    return $ CInt i
+
+cVarExpr = do
+    v <- variable
+    return $ CVar v
+
 terminal = do
-    s <- quotedString
+    s <- quotedString <|> charlit
     case s of
         [c] -> return $ Terminal $ c
         _ -> return $ Seq $ map (\c -> Terminal c) s
@@ -118,33 +132,57 @@ actuals = do
 
 keyword s = do
     try (string s)
-    spaces
+    fspaces
 
 capWord = do
     c <- upper
     s <- many (alphaNum)
-    spaces
+    fspaces
     return (c:s)
 
 lowWord = do
     c <- lower
     s <- many (alphaNum)
-    spaces
+    fspaces
     return (c:s)
 
 intlit = do
+    sign <- option 1 leadingMinus
     c <- digit
     cs <- many digit
-    num <- return (read (c:cs) :: Integer)
-    spaces
-    return num
+    fspaces
+    return ((read (c:cs) :: Integer) * sign)
+
+leadingMinus :: Parser Integer
+leadingMinus = do
+    char '-'
+    return (-1)
 
 quotedString = do
-    c1 <- char '"'
+    char '"'
     s <- many $ satisfy (\x -> x /= '"')
-    c2 <- char '"'
-    spaces
+    char '"'
+    fspaces
     return s
+
+charlit = do
+    char '#'
+    c <- digit
+    cs <- many digit
+    fspaces
+    return [chr (read (c:cs) :: Int)]
+
+fspaces = do
+    spaces
+    many comment
+    return ()
+
+comment = do
+    string "//"
+    many $ satisfy (\x -> x /= '\n')
+    (do { char '\n'; return ()} <|> eof)
+    fspaces
+    return ()
 
 --
 -- Driver

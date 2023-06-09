@@ -1,0 +1,32 @@
+//
+// Simplified "Kennel story".
+// `steps` should be provided externally.
+// steps=11111 will produce a 50,000 word novel.
+//
+
+Goal ::=
+    <. dx = 1 .> <. x = 0 .> <. a = 0 .> <. lx = 0 .>
+    {
+        DogMove<x, dx>
+        <. x += dx .>
+        DogTurnAround<x, dx, lx>
+        <. a += 1 .>
+    } <. a > steps .> <. x = 0 .>
+    ;
+DogMove<x, dx> ::=
+      <. dx > 0 .> DogForth<x> #10
+    | <. dx < 0 .> DogBack<x> #10
+    ;
+DogForth<x> ::=
+      <. x < 1 .> "The dog ran away."
+    | <. x > 0 .> "The dog ran further away."
+    ;
+DogBack<x> ::=
+      <. x < 2 .> "The dog came back home."
+    | <. x > 1 .> "The dog journeyed back."
+    ;
+DogTurnAround<x, dx, lx> ::=
+      <. x > lx .> <. dx -= 2 .> <. lx += 1 .>
+    | <. x < 1 .> <. dx += 2 .>
+    | <. dx += 0 .>
+    ;
