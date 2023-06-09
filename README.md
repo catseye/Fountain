@@ -109,6 +109,12 @@ side.
 
 When parsing, parameters can also be supplied from external sources.
 
+Example Fountain grammar describing a heartwarming and
+context-sensitive novel about a wayward animal companion has been
+included in the distribution.
+
+Distribution placed under BSD license.
+
 ### 0.2
 
 0.2 refined some of the core ideas of Fountain.  The
