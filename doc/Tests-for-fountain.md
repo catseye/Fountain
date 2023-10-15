@@ -79,7 +79,7 @@ Misplaced semicolon is a syntax error.
 Sequence.
 
     Goal ::= "f" "o" "o";
-    ===> Grammar [("Goal",[],Alt [Seq [Terminal 'f',Terminal 'o',Terminal 'o']])]
+    ===> Grammar [("Goal",[],Seq [Seq [Terminal 'f',Terminal 'o',Terminal 'o']])]
 
 Alternation and recursion.
 
@@ -89,11 +89,11 @@ Alternation and recursion.
 Repetition.
 
     Goal ::= "(" {"0"} ")";
-    ===> Grammar [("Goal",[],Alt [Seq [Terminal '(',Loop (Alt [Seq [Terminal '0']]) [],Terminal ')']])]
+    ===> Grammar [("Goal",[],Seq [Seq [Terminal '(',Loop (Seq [Seq [Terminal '0']]) [],Terminal ')']])]
 
     Goal ::=
          <. a = 0 .> { "a" <. a += 1 .> } <. a = n .>
          <. b = 0 .> { "b" <. b += 1 .> } <. b = n .>
          <. c = 0 .> { "c" <. c += 1 .> } <. c = n .>
          ;
-    ===> Grammar [("Goal",[],Alt [Seq [Constraint (UnifyConst (Var "a") 0),Loop (Alt [Seq [Terminal 'a',Constraint (Inc (Var "a") (CInt 1))]]) [UnifyVar (Var "a") (Var "n"),UnifyConst (Var "b") 0],Loop (Alt [Seq [Terminal 'b',Constraint (Inc (Var "b") (CInt 1))]]) [UnifyVar (Var "b") (Var "n"),UnifyConst (Var "c") 0],Loop (Alt [Seq [Terminal 'c',Constraint (Inc (Var "c") (CInt 1))]]) [UnifyVar (Var "c") (Var "n")]]])]
+    ===> Grammar [("Goal",[],Seq [Seq [Constraint (UnifyConst (Var "a") 0),Loop (Seq [Seq [Terminal 'a',Constraint (Inc (Var "a") (CInt 1))]]) [UnifyVar (Var "a") (Var "n"),UnifyConst (Var "b") 0],Loop (Seq [Seq [Terminal 'b',Constraint (Inc (Var "b") (CInt 1))]]) [UnifyVar (Var "b") (Var "n"),UnifyConst (Var "c") 0],Loop (Seq [Seq [Terminal 'c',Constraint (Inc (Var "c") (CInt 1))]]) [UnifyVar (Var "c") (Var "n")]]])]

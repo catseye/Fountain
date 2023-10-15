@@ -236,13 +236,31 @@ Sequence.
     Goal ::= "f" "o" "o";
     ===> foo
 
-Alternation.
+Alternation.  Note that, when generating, Alt choices need preconditions because,
+unlike parsing, we need some guidance of which one to pick.
 
     Goal ::= "f" | "o";
+    ???> No pre-condition
+
+    Goal ::= "f" | <. a = 0 .> "o";
+    ???> No pre-condition
+
+(This one's not quite right yet.)
+
+    > Goal ::= (<. a = 0 .> "f") | "o";
+    > ???> No pre-condition
+
+But if all choices of the Alt have constraints, we are able to select the one
+that fulfills the constraints.
+
+    Goal ::= <. a = 0 .> "f" | <. a = 1 .> "o";
     ===> f
 
-    Goal ::= ("f" | "o") ("a" | "z");
-    ===> fa
+    Goal ::= <. a = 0 .> (<. a = 1 .> "f" | <. a = 0 .> "o");
+    ===> o
+
+    Goal ::= (<. a = 0 .> "f" | <. a = 1 .> "o") (<. a = 1 .> "a" | <. a = 0 .> "z");
+    ===> fz
 
 Repetition.  Without constraints, this will error out.
 

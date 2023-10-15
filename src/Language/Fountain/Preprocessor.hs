@@ -24,6 +24,7 @@ preprocessExpr (Seq exprs) = Seq (preprocessSeq exprs) where
             (Loop expr' constraints):(preprocessSeq rest')
     preprocessSeq (expr:rest) =
         (preprocessExpr expr):(preprocessSeq rest)
+preprocessExpr (Alt [expr]) = Seq [preprocessExpr expr]
 preprocessExpr (Alt exprs) = Alt (map preprocessExpr exprs)
 preprocessExpr (Loop expr _) = error "Cannot preprocess Loop that is not in Seq"
 preprocessExpr other = other

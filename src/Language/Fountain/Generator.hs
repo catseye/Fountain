@@ -16,12 +16,14 @@ obtainResult :: GenState -> Either String String
 obtainResult (Generating s _) = Right s
 obtainResult Failure = Left "failure"
 
+--
 -- Alt choices need preconditions because in generating, unlike parsing,
 -- we need some guidance of which one to pick
-getPreCondition :: Expr -> Constraint
-getPreCondition (Seq (x:xs)) = getPreCondition x
-getPreCondition (Constraint c) = c
-getPreCondition x = error ("No pre-condition present on this Alt choice: " ++ (show x))
+--
+getPreCondition :: Expr -> Expr -> Constraint
+getPreCondition alts (Seq (x:xs)) = getPreCondition alts x
+getPreCondition alts (Constraint c) = c
+getPreCondition alts x = error ("No pre-condition present on this Alt choice: " ++ (show alts) ++ " => " ++ (show x))
 
 
 gen :: Grammar -> GenState -> Expr -> GenState
@@ -36,9 +38,9 @@ gen g st (Seq s) = genSeq g st s where
 -- We look at all the choices; each should start with a pre-condition
 -- determining whether we can select it; and we should narrow down our
 -- choices based on that. (Then pick randomly?  Or insist deterministic?)
-gen g st@(Generating str store) (Alt s) =
+gen g st@(Generating str store) alts@(Alt s) =
     let
-        preConditionedAlts = map (\x -> (getPreCondition x, x)) s
+        preConditionedAlts = map (\x -> (getPreCondition alts x, x)) s
         applicableAlts = filter (\(c, x) -> canApplyConstraint c store) preConditionedAlts
     in
         genAlt g st applicableAlts where
