@@ -16,6 +16,13 @@ obtainResult :: GenState -> Either String String
 obtainResult (Generating s _) = Right s
 obtainResult Failure = Left "failure"
 
+-- Alt choices need preconditions because in generating, unlike parsing,
+-- we need some guidance of which one to pick
+getPreCondition :: Expr -> Constraint
+getPreCondition (Seq (x:xs)) = getPreCondition x
+getPreCondition (Constraint c) = c
+getPreCondition x = error ("No pre-condition present on this Alt choice: " ++ (show x))
+
 
 gen :: Grammar -> GenState -> Expr -> GenState
 
@@ -26,16 +33,20 @@ gen g st (Seq s) = genSeq g st s where
             Failure -> Failure
             st'     -> genSeq g st' rest
 
--- FIXME: this should look at all the alts and
--- each of those alts should start with pre-conditions
--- and we should narrow which one down based on that.
--- Then pick randomly.
-gen g st (Alt s) = genAlt g st s where
-    genAlt g st [] = Failure
-    genAlt g st (e : rest) =
-        case gen g st e of
-            Failure -> genAlt g st rest
-            st'     -> st'
+-- We look at all the choices; each should start with a pre-condition
+-- determining whether we can select it; and we should narrow down our
+-- choices based on that. (Then pick randomly?  Or insist deterministic?)
+gen g st@(Generating str store) (Alt s) =
+    let
+        preConditionedAlts = map (\x -> (getPreCondition x, x)) s
+        applicableAlts = filter (\(c, x) -> canApplyConstraint c store) preConditionedAlts
+    in
+        genAlt g st applicableAlts where
+        genAlt g st [] = Failure
+        genAlt g st ((_, e) : rest) =
+            case gen g st e of
+                Failure -> genAlt g st rest
+                st'     -> st'
 
 gen g state (Loop l postconditions) =
     genLoop g state l (assertThereAreSome postconditions) where
@@ -123,6 +134,10 @@ applyConstraint (LessThan v e) st =
         _ ->
             Nothing
 
+canApplyConstraint c store =
+    case applyConstraint c store of
+        Just _  -> True
+        Nothing -> False
 
 constructState :: [String] -> GenState
 constructState initialParams = Generating "" (constructStore initialParams)
