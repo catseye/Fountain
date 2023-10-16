@@ -69,14 +69,12 @@ TODO
 
 ### Semantics
 
-*   Check constraints on all branches of each alternation, select pseudorandomly
-    (and efficiently) from the set of alternatives which are permissible.
+*   Ensure that (under normal operation) only one choice in an alternation can
+    be chosen because its constraint can be met (all other constraints cannot).
 *   Params on top-level Goal mean those values must be provided from environment.
 
 ### Implementation
 
-*   Flatten nested Seq's and Alt's in the AST (to support the
-    alternative-selection strategy described above).
 *   Command-line option to start at a different goal symbol.
 *   Pretty-printer, so that the implementation tests can be more robust.
 

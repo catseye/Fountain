@@ -10,8 +10,9 @@ preprocessGrammar :: Grammar -> Grammar
 preprocessGrammar (Grammar productions) =
     let
         productions' = map (\(term, formals, expr) -> (term, formals, preprocessExpr expr)) productions
+        productions'' = map (\(term, formals, expr) -> (term, formals, eliminateSingleAlts expr)) productions'
     in
-        Grammar productions'
+        Grammar productions''
 
 preprocessExpr :: Expr -> Expr
 preprocessExpr (Seq exprs) = Seq (preprocessSeq exprs) where
@@ -24,21 +25,24 @@ preprocessExpr (Seq exprs) = Seq (preprocessSeq exprs) where
             (Loop expr' constraints):(preprocessSeq rest')
     preprocessSeq (expr:rest) =
         (preprocessExpr expr):(preprocessSeq rest)
-preprocessExpr (Alt [expr]) = Seq [preprocessExpr expr]  -- FIXME: flatten Alts in a more thorough way
+    absorbConstraints :: [Expr] -> ([Constraint], [Expr])
+    absorbConstraints exprs =
+        let
+            constraints' = map (extractConstraint) (takeWhile (isConstraint) exprs)
+            exprs' = dropWhile (isConstraint) exprs
+
+            isConstraint (Constraint _) = True
+            isConstraint _ = False
+
+            extractConstraint (Constraint c) = c
+        in
+            (constraints', exprs')
 preprocessExpr (Alt exprs) = Alt (map preprocessExpr exprs)
 preprocessExpr (Loop expr _) = error "Cannot preprocess Loop that is not in Seq"
 preprocessExpr other = other
 
-
-absorbConstraints :: [Expr] -> ([Constraint], [Expr])
-absorbConstraints exprs =
-    let
-        constraints' = map (extractConstraint) (takeWhile (isConstraint) exprs)
-        exprs' = dropWhile (isConstraint) exprs
-
-        isConstraint (Constraint _) = True
-        isConstraint _ = False
-
-        extractConstraint (Constraint c) = c
-    in
-        (constraints', exprs')
+eliminateSingleAlts (Alt [expr]) = eliminateSingleAlts expr
+eliminateSingleAlts (Alt exprs) = Alt $ map (eliminateSingleAlts) exprs
+eliminateSingleAlts (Seq exprs) = Seq $ map (eliminateSingleAlts) exprs
+eliminateSingleAlts (Loop expr cs) = Loop (eliminateSingleAlts expr) cs
+eliminateSingleAlts other = other
