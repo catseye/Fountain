@@ -35,7 +35,15 @@ expr0 = do
 
 expr1 = do
     es <- many1 term
-    return $ Seq es
+    return $ Seq $ flattenseq es
+
+flattenseq [] = []
+flattenseq (s:ss) = case s of
+    -- Not just flatten Seq but also remove 1-element Alt's.
+    -- Note that xs will always be flat already
+    Seq xs -> xs ++ (flattenseq ss)
+    Alt [x] -> (flattenseq [x]) ++ (flattenseq ss)
+    _       -> (s:flattenseq ss)
 
 term = (try parenExpr) <|> (try loopExpr) <|> (try constraintExpr) <|> (try terminal) <|> nonterminal
 

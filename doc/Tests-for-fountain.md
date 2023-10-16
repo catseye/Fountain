@@ -23,7 +23,7 @@ Sequence.
 Multi-character terminals.
 
     Goal ::= "foo" "bar";
-    ===> Grammar [("Goal",[],Alt [Seq [Seq [Terminal 'f',Terminal 'o',Terminal 'o'],Seq [Terminal 'b',Terminal 'a',Terminal 'r']]])]
+    ===> Grammar [("Goal",[],Alt [Seq [Terminal 'f',Terminal 'o',Terminal 'o',Terminal 'b',Terminal 'a',Terminal 'r']])]
 
 Alternation and recursion.
 
@@ -48,7 +48,7 @@ Parameters and multiple productions.
 
     Goal ::= "Hi" Sp<a> "there" Sp<b> "world" "!";
     Sp<n> ::= <. n = 0 .> { " " <. n += 1 .> } <. n > 0 .>;
-    ===> Grammar [("Goal",[],Alt [Seq [Seq [Terminal 'H',Terminal 'i'],NonTerminal "Sp" [Var "a"],Seq [Terminal 't',Terminal 'h',Terminal 'e',Terminal 'r',Terminal 'e'],NonTerminal "Sp" [Var "b"],Seq [Terminal 'w',Terminal 'o',Terminal 'r',Terminal 'l',Terminal 'd'],Terminal '!']]),("Sp",[Var "n"],Alt [Seq [Constraint (UnifyConst (Var "n") 0),Loop (Alt [Seq [Terminal ' ',Constraint (Inc (Var "n") (CInt 1))]]) [],Constraint (GreaterThan (Var "n") (CInt 0))]])]
+    ===> Grammar [("Goal",[],Alt [Seq [Terminal 'H',Terminal 'i',NonTerminal "Sp" [Var "a"],Terminal 't',Terminal 'h',Terminal 'e',Terminal 'r',Terminal 'e',NonTerminal "Sp" [Var "b"],Terminal 'w',Terminal 'o',Terminal 'r',Terminal 'l',Terminal 'd',Terminal '!']]),("Sp",[Var "n"],Alt [Seq [Constraint (UnifyConst (Var "n") 0),Loop (Alt [Seq [Terminal ' ',Constraint (Inc (Var "n") (CInt 1))]]) [],Constraint (GreaterThan (Var "n") (CInt 0))]])]
 
 Comments.
 
@@ -62,7 +62,7 @@ Comments.
     //
     // There are many ways to place comments.
     "//";
-    ===> Grammar [("Goal",[],Alt [Seq [Seq [Terminal 'f',Terminal 'o',Terminal 'o']]]),("A",[],Alt [Seq [Terminal 'f',Terminal 'o',Seq [Terminal '/',Terminal '/']]])]
+    ===> Grammar [("Goal",[],Alt [Seq [Terminal 'f',Terminal 'o',Terminal 'o']]),("A",[],Alt [Seq [Terminal 'f',Terminal 'o',Terminal '/',Terminal '/']])]
 
 Misplaced semicolon is a syntax error.
 
