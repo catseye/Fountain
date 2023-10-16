@@ -28,4 +28,5 @@ DogBack<x> ::=
 DogTurnAround<x, dx, lx> ::=
       <. x > lx .> <. dx -= 2 .> <. lx += 1 .>
     | <. x < 1 .> <. dx += 2 .>
+    | <. && x >= 1 , x <= lx .>
     ;

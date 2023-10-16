@@ -62,7 +62,7 @@ constraintExpr = do
     keyword ".>"
     return $ Constraint $ c
 
-constrainer = (try unifyConst) <|> (try unifyVar) <|> (try inc) <|> (try dec) <|> (try gte) <|> (try gt) <|> (try lte) <|> (try lt)
+constrainer = (try unifyConst) <|> (try unifyVar) <|> (try inc) <|> (try dec) <|> (try gte) <|> (try gt) <|> (try lte) <|> (try lt) <|> (try both)
 
 unifyConst = do
     v <- variable
@@ -111,6 +111,14 @@ lt = do
     keyword "<"
     e <- cexpr
     return $ LessThan v e
+
+both = do
+    -- TODO: this syntax is awful, change it please
+    keyword "&&"
+    c1 <- constrainer
+    keyword ","
+    c2 <- constrainer
+    return $ Both c1 c2
 
 variable = do
     s <- lowWord

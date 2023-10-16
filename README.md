@@ -72,6 +72,7 @@ TODO
 ### Semantics
 
 *   Params on top-level Goal mean those values must be provided from environment.
+*   Combine two sequenced constraints into a "both" constraint internally.
 
 ### Implementation
 
@@ -80,7 +81,6 @@ TODO
 
 ### Documentation
 
-*   Fix "Kennel Story".  Might require `&&`.
 *   Test cases for backtracking during parsing.
 *   Test cases for backtracking during generation.
 
@@ -106,6 +106,8 @@ backtracking will occur.  If more than one are, the process will
 abort with an error message.
 
 Greater than or equal and less than or equal constraints.
+
+"Both" combinator on constraints (which really needs reworking).
 
 Implementation improvements such as better flattening of the AST
 representing the grammar during its parsing.

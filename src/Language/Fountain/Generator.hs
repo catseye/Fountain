@@ -159,11 +159,18 @@ applyConstraint (LessThanOrEqual v e) st =
             if value <= target then Just st else Nothing
         _ ->
             Nothing
+applyConstraint (Both c1 c2) st =
+    case applyConstraint c1 st of
+        Just st' ->
+            applyConstraint c2 st'
+        Nothing ->
+            Nothing
 
 canApplyConstraint c store =
     case applyConstraint c store of
         Just _  -> True
         Nothing -> False
+
 
 constructState :: [String] -> GenState
 constructState initialParams = Generating "" (constructStore initialParams)
