@@ -35,13 +35,12 @@ expr0 = do
 
 expr1 = do
     es <- many1 term
-    return $ Seq $ flattenseq es
-
-flattenseq [] = []
-flattenseq (s:ss) = case s of
-    -- Note that xs will always be flat already
-    Seq xs -> xs ++ (flattenseq ss)
-    _      -> (s:flattenseq ss)
+    return $ Seq $ flattenseq es where
+        flattenseq [] = []
+        flattenseq (s:ss) = case s of
+            -- Note that xs will always be flat already
+            Seq xs -> xs ++ (flattenseq ss)
+            _      -> (s:flattenseq ss)
 
 term = (try parenExpr) <|> (try loopExpr) <|> (try constraintExpr) <|> (try terminal) <|> nonterminal
 
