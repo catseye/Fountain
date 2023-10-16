@@ -80,7 +80,7 @@ TODO
 
 ### Documentation
 
-*   Fix "Kennel Story".  Might require `>=`, `<=`, `&&`
+*   Fix "Kennel Story".  Might require `&&`.
 *   Test cases for backtracking during parsing.
 *   Test cases for backtracking during generation.
 
@@ -104,6 +104,11 @@ a constraint.  Exactly zero or one of those constraints must be
 satisfied in a given state.  If none are, that is a failure, and
 backtracking will occur.  If more than one are, the process will
 abort with an error message.
+
+Greater than or equal and less than or equal constraints.
+
+Implementation improvements such as better flattening of the AST
+representing the grammar during its parsing.
 
 ### 0.3
 

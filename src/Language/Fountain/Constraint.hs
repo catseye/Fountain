@@ -14,5 +14,7 @@ data Constraint = UnifyConst Variable Integer
                 | Inc Variable CExpr
                 | Dec Variable CExpr
                 | GreaterThan Variable CExpr
+                | GreaterThanOrEqual Variable CExpr
                 | LessThan Variable CExpr
+                | LessThanOrEqual Variable CExpr
     deriving (Show, Ord, Eq)

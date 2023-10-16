@@ -62,7 +62,7 @@ constraintExpr = do
     keyword ".>"
     return $ Constraint $ c
 
-constrainer = (try unifyConst) <|> (try unifyVar) <|> (try inc) <|> (try dec) <|> (try gt) <|> (try lt)
+constrainer = (try unifyConst) <|> (try unifyVar) <|> (try inc) <|> (try dec) <|> (try gte) <|> (try gt) <|> (try lte) <|> (try lt)
 
 unifyConst = do
     v <- variable
@@ -88,11 +88,23 @@ dec = do
     e <- cexpr
     return $ Dec v e
 
+gte = do
+    v <- variable
+    keyword ">="
+    e <- cexpr
+    return $ GreaterThanOrEqual v e
+
 gt = do
     v <- variable
     keyword ">"
     e <- cexpr
     return $ GreaterThan v e
+
+lte = do
+    v <- variable
+    keyword "<="
+    e <- cexpr
+    return $ LessThanOrEqual v e
 
 lt = do
     v <- variable

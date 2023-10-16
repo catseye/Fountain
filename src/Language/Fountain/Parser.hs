@@ -102,10 +102,22 @@ applyConstraint (GreaterThan v e) st =
             if value > target then Just st else Nothing
         _ ->
             Nothing
+applyConstraint (GreaterThanOrEqual v e) st =
+    case (fetch v st, ceval e st) of
+        (Just value, Just target) ->
+            if value >= target then Just st else Nothing
+        _ ->
+            Nothing
 applyConstraint (LessThan v e) st =
     case (fetch v st, ceval e st) of
         (Just value, Just target) ->
             if value < target then Just st else Nothing
+        _ ->
+            Nothing
+applyConstraint (LessThanOrEqual v e) st =
+    case (fetch v st, ceval e st) of
+        (Just value, Just target) ->
+            if value <= target then Just st else Nothing
         _ ->
             Nothing
 
