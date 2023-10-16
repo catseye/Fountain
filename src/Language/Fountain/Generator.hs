@@ -1,5 +1,7 @@
 module Language.Fountain.Generator (constructState, generateFrom, obtainResult) where
 
+import Data.Maybe (mapMaybe)
+
 import Language.Fountain.Grammar
 import Language.Fountain.Constraint
 import Language.Fountain.Store
@@ -20,10 +22,16 @@ obtainResult Failure = Left "failure"
 -- Alt choices need preconditions because in generating, unlike parsing,
 -- we need some guidance of which one to pick
 --
-getPreCondition :: Expr -> Expr -> Constraint
-getPreCondition alts (Seq (x:xs)) = getPreCondition alts x
-getPreCondition alts (Constraint c) = c
-getPreCondition alts x = error ("No pre-condition present on this Alt choice: " ++ (show alts) ++ " => " ++ (show x))
+getPreCondition :: Expr -> Maybe Constraint
+getPreCondition (Seq (x:xs)) = getPreCondition x
+getPreCondition (Constraint c) = Just c
+getPreCondition x = Nothing
+
+missingPreConditions choices =
+    mapMaybe (\x -> case getPreCondition x of
+        Just _ -> Nothing
+        Nothing -> Just x
+      ) choices
 
 
 gen :: Grammar -> GenState -> Expr -> GenState
@@ -38,17 +46,21 @@ gen g st (Seq s) = genSeq g st s where
 -- We look at all the choices; each should start with a pre-condition
 -- determining whether we can select it; and we should narrow down our
 -- choices based on that. (Then pick randomly?  Or insist deterministic?)
-gen g st@(Generating str store) alts@(Alt s) =
-    let
-        preConditionedAlts = map (\x -> (getPreCondition alts x, x)) s
-        applicableAlts = filter (\(c, x) -> canApplyConstraint c store) preConditionedAlts
-    in
-        genAlt g st applicableAlts where
-        genAlt g st [] = Failure
-        genAlt g st ((_, e) : rest) =
-            case gen g st e of
-                Failure -> genAlt g st rest
-                st'     -> st'
+gen g st@(Generating str store) (Alt choices) =
+    case missingPreConditions choices of
+        missing@(_:_) ->
+            error ("No pre-condition present on these Alt choices: " ++ (show missing))
+        [] ->
+            let
+                preConditionedChoices = map (\x -> (getPreCondition x, x)) choices
+                applicableChoices = filter (\(Just c, x) -> canApplyConstraint c store) preConditionedChoices
+            in
+                genAlt g st applicableChoices where
+                genAlt g st [] = Failure
+                genAlt g st ((_, e) : rest) =
+                    case gen g st e of
+                        Failure -> genAlt g st rest
+                        st'     -> st'
 
 gen g state (Loop l postconditions) =
     genLoop g state l (assertThereAreSome postconditions) where

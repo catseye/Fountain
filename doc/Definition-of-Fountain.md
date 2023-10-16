@@ -245,10 +245,8 @@ unlike parsing, we need some guidance of which one to pick.
     Goal ::= "f" | <. a = 0 .> "o";
     ???> No pre-condition
 
-(This one's not quite right yet.)
-
-    > Goal ::= (<. a = 0 .> "f") | "o";
-    > ???> No pre-condition
+    Goal ::= (<. a = 0 .> "f") | "o";
+    ???> No pre-condition
 
 But if all choices of the Alt have constraints, we are able to select the one
 that fulfills the constraints.
