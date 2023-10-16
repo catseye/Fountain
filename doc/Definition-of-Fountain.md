@@ -251,13 +251,20 @@ unlike parsing, we need some guidance of which one to pick.
 But if all choices of the Alt have constraints, we are able to select the one
 that fulfills the constraints.
 
-    Goal ::= <. a = 0 .> "f" | <. a = 1 .> "o";
+    Goal ::= <. a = 1 .> (<. a = 1 .> "f" | <. a = 0 .> "o");
     ===> f
 
     Goal ::= <. a = 0 .> (<. a = 1 .> "f" | <. a = 0 .> "o");
     ===> o
 
-    Goal ::= (<. a = 0 .> "f" | <. a = 1 .> "o") (<. a = 1 .> "a" | <. a = 0 .> "z");
+But only and exactly one of the choices must have its constraints satisfied by
+the current state.  If more than one choice has satisfiable constraints, then
+that is an ambiguous situation, and (in normal operation) it is an error.
+
+    Goal ::= <. a = 0 .> "f" | <. a = 1 .> "o";
+    ???> Multiple pre-conditions
+
+    Goal ::= <. a = 0 .> (<. a = 0 .> "f" | <. a = 1 .> "o") (<. a = 1 .> "a" | <. a = 0 .> "z");
     ===> fz
 
 Repetition.  Without constraints, this will error out.

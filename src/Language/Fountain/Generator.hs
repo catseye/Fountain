@@ -57,10 +57,10 @@ gen g st@(Generating str store) (Alt choices) =
             in
                 genAlt g st applicableChoices where
                 genAlt g st [] = Failure
-                genAlt g st ((_, e) : rest) =
-                    case gen g st e of
-                        Failure -> genAlt g st rest
-                        st'     -> st'
+                -- we ignore the constraint because it will apply the constraint once descending into e
+                genAlt g st [(_, e)] = gen g st e
+                genAlt g st other =
+                    error ("Multiple pre-conditions are satisfied in Alt: " ++ (show other))
 
 gen g state (Loop l postconditions) =
     genLoop g state l (assertThereAreSome postconditions) where
