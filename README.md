@@ -1,6 +1,8 @@
 Fountain
 ========
 
+_Version 0.4_
+
 Cat's Eye Technologies' **Fountain** is a work-in-progress grammar formalism
 capable of expressing context-sensitive languages (CSLs), and supporting both
 efficient parsing _and_ efficient generation of strings conforming to those
@@ -78,6 +80,7 @@ TODO
 
 ### Documentation
 
+*   Fix "Kennel Story".  Might require `>=`, `<=`, `&&`
 *   Test cases for backtracking during parsing.
 *   Test cases for backtracking during generation.
 
@@ -93,6 +96,14 @@ TODO
 
 History
 -------
+
+### 0.4
+
+During generation, every choice in an alternation must start with
+a constraint.  Exactly zero or one of those constraints must be
+satisfied in a given state.  If none are, that is a failure, and
+backtracking will occur.  If more than one are, the process will
+abort with an error message.
 
 ### 0.3
 
