@@ -171,6 +171,26 @@ Greater-than and less-than constraints by variable.
     <=== a
     ===> Success
 
+Greater-than-or-equal and less-than-or-equal constraints by constant.
+
+    Goal ::= <. a = 3 .> <. a >= 2 .> <. a <= 4 .> "a";
+    <=== a
+    ===> Success
+
+    Goal ::= <. a = 3 .> <. a >= 3 .> <. a <= 3 .> "a";
+    <=== a
+    ===> Success
+
+Greater-than-or-equal and less-than-or-equal constraints by variable.
+
+    Goal ::= <. a = 3 .> <. h = 4 .> <. l = 2 .> <. a >= l .> <. a <= h .> "a";
+    <=== a
+    ===> Success
+
+    Goal ::= <. a = 3 .> <. h = 3 .> <. l = 3 .> <. a >= l .> <. a <= h .> "a";
+    <=== a
+    ===> Success
+
 ### Parsing with local variables
 
     Goal ::= "Hi" Sp "there" Sp "world" "!";
@@ -324,6 +344,22 @@ Greater-than and less-than constraints by constant.
 Greater-than and less-than constraints by variable.
 
     Goal ::= <. a = 3 .> <. h = 4 .> <. l = 2 .> <. a > l .> <. a < h .> "a";
+    ===> a
+
+Greater-than-or-equal and less-than-or-equal constraints by constant.
+
+    Goal ::= <. a = 3 .> <. a >= 2 .> <. a <= 4 .> "a";
+    ===> a
+
+    Goal ::= <. a = 3 .> <. a >= 3 .> <. a <= 3 .> "a";
+    ===> a
+
+Greater-than-or-equal and less-than-or-equal constraints by variable.
+
+    Goal ::= <. a = 3 .> <. h = 4 .> <. l = 2 .> <. a >= l .> <. a <= h .> "a";
+    ===> a
+
+    Goal ::= <. a = 3 .> <. h = 3 .> <. l = 3 .> <. a >= l .> <. a <= h .> "a";
     ===> a
 
 ### Generation with local variables

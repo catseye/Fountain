@@ -96,30 +96,10 @@ applyConstraint (Dec v e) st =
             Just $ update (\i -> Just (i - delta)) v st
         Nothing ->
             Nothing
-applyConstraint (GreaterThan v e) st =
-    case (fetch v st, ceval e st) of
-        (Just value, Just target) ->
-            if value > target then Just st else Nothing
-        _ ->
-            Nothing
-applyConstraint (GreaterThanOrEqual v e) st =
-    case (fetch v st, ceval e st) of
-        (Just value, Just target) ->
-            if value >= target then Just st else Nothing
-        _ ->
-            Nothing
-applyConstraint (LessThan v e) st =
-    case (fetch v st, ceval e st) of
-        (Just value, Just target) ->
-            if value < target then Just st else Nothing
-        _ ->
-            Nothing
-applyConstraint (LessThanOrEqual v e) st =
-    case (fetch v st, ceval e st) of
-        (Just value, Just target) ->
-            if value <= target then Just st else Nothing
-        _ ->
-            Nothing
+applyConstraint (GreaterThan v e) st = applyRelConstraint (>) v e st
+applyConstraint (GreaterThanOrEqual v e) st = applyRelConstraint (>=) v e st
+applyConstraint (LessThan v e) st = applyRelConstraint (<) v e st
+applyConstraint (LessThanOrEqual v e) st = applyRelConstraint (<=) v e st
 applyConstraint (Both c1 c2) st =
     case applyConstraint c1 st of
         Just st' ->
@@ -127,6 +107,12 @@ applyConstraint (Both c1 c2) st =
         Nothing ->
             Nothing
 
+applyRelConstraint op v e st =
+    case (fetch v st, ceval e st) of
+        (Just value, Just target) ->
+            if value `op` target then Just st else Nothing
+        _ ->
+            Nothing
 
 constructState :: String -> [String] -> ParseState
 constructState text initialParams = Parsing text $ constructStore initialParams
