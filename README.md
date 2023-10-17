@@ -77,7 +77,6 @@ TODO
 ### Implementation
 
 *   Command-line option to start at a different goal symbol.
-*   Pretty-printer, so that the implementation tests can be more robust.
 
 ### Documentation
 
@@ -110,7 +109,8 @@ Greater than or equal and less than or equal constraints.
 "Both" combinator on constraints (which really needs reworking).
 
 Implementation improvements such as better flattening of the AST
-representing the grammar during its parsing.
+representing the grammar during its parsing, and pretty-printing
+fragments of the AST (albeit crudely) when displaying them.
 
 ### 0.3
 

@@ -1,5 +1,7 @@
 module Language.Fountain.Grammar where
 
+import Data.List (intercalate)
+
 import Language.Fountain.Constraint
 
 
@@ -16,11 +18,28 @@ data Expr = Seq [Expr]
           | Terminal Char
           | NonTerminal NTName [Variable]
           | Constraint Constraint
-    deriving (Show, Ord, Eq)
+    deriving (Ord, Eq)
+
+instance Show Expr where
+    show (Seq exprs) = "(" ++ (intercalate " " (map (show) exprs)) ++ ")"
+    show (Alt exprs) = "(" ++ (intercalate " | " (map (show) exprs)) ++ ")"
+    show (Loop expr _) = "{" ++ (show expr) ++ "}"
+    show (Terminal c) = "\"" ++ [c] ++ "\""
+    show (NonTerminal name vars) = name ++ showVars vars
+    show (Constraint c) = "<. " ++ (show c) ++ " .>"
+
+
+showVars [] = ""
+showVars vars = "<" ++ (intercalate ", " (map (show) vars)) ++ ">"
 
 
 data Grammar = Grammar [(NTName, [Variable], Expr)]
-    deriving (Show, Ord, Eq)
+    deriving (Ord, Eq)
+
+instance Show Grammar where
+    show (Grammar []) = ""
+    show (Grammar ((name,vars,expr):rest)) = name ++ (showVars vars) ++ " ::= " ++ (show expr) ++ ";\n" ++ (show $ Grammar rest)
+
 
 startSymbol (Grammar ((term, _, _) : _)) = term
 startSymbol (Grammar []) = error "No productions in grammar"

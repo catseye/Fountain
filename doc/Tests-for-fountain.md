@@ -18,22 +18,22 @@ details.  They are thus not part of the main test suite.
 Sequence.
 
     Goal ::= "f" "o" "o";
-    ===> Grammar [("Goal",[],Alt [Seq [Terminal 'f',Terminal 'o',Terminal 'o']])]
+    ===> Goal ::= (("f" "o" "o"));
 
 Multi-character terminals.
 
     Goal ::= "foo" "bar";
-    ===> Grammar [("Goal",[],Alt [Seq [Terminal 'f',Terminal 'o',Terminal 'o',Terminal 'b',Terminal 'a',Terminal 'r']])]
+    ===> Goal ::= (("f" "o" "o" "b" "a" "r"));
 
 Alternation and recursion.
 
     Goal ::= "(" Goal ")" | "0";
-    ===> Grammar [("Goal",[],Alt [Seq [Terminal '(',NonTerminal "Goal" [],Terminal ')'],Seq [Terminal '0']])]
+    ===> Goal ::= (("(" Goal ")") | ("0"));
 
 Repetition.
 
     Goal ::= "(" {"0"} ")";
-    ===> Grammar [("Goal",[],Alt [Seq [Terminal '(',Loop (Alt [Seq [Terminal '0']]) [],Terminal ')']])]
+    ===> Goal ::= (("(" {(("0"))} ")"));
 
 Constraints.
 
@@ -42,13 +42,14 @@ Constraints.
          <. b = 0 .> { "b" <. b += 1 .> } <. b = n .>
          <. c = 0 .> { "c" <. c += 1 .> } <. c = n .>
          ;
-    ===> Grammar [("Goal",[],Alt [Seq [Constraint (UnifyConst (Var "a") 0),Loop (Alt [Seq [Terminal 'a',Constraint (Inc (Var "a") (CInt 1))]]) [],Constraint (UnifyVar (Var "a") (Var "n")),Constraint (UnifyConst (Var "b") 0),Loop (Alt [Seq [Terminal 'b',Constraint (Inc (Var "b") (CInt 1))]]) [],Constraint (UnifyVar (Var "b") (Var "n")),Constraint (UnifyConst (Var "c") 0),Loop (Alt [Seq [Terminal 'c',Constraint (Inc (Var "c") (CInt 1))]]) [],Constraint (UnifyVar (Var "c") (Var "n"))]])]
+    ===> Goal ::= ((<. a = 0 .> {(("a" <. a += 1 .>))} <. a = n .> <. b = 0 .> {(("b" <. b += 1 .>))} <. b = n .> <. c = 0 .> {(("c" <. c += 1 .>))} <. c = n .>));
 
 Parameters and multiple productions.
 
     Goal ::= "Hi" Sp<a> "there" Sp<b> "world" "!";
     Sp<n> ::= <. n = 0 .> { " " <. n += 1 .> } <. n > 0 .>;
-    ===> Grammar [("Goal",[],Alt [Seq [Terminal 'H',Terminal 'i',NonTerminal "Sp" [Var "a"],Terminal 't',Terminal 'h',Terminal 'e',Terminal 'r',Terminal 'e',NonTerminal "Sp" [Var "b"],Terminal 'w',Terminal 'o',Terminal 'r',Terminal 'l',Terminal 'd',Terminal '!']]),("Sp",[Var "n"],Alt [Seq [Constraint (UnifyConst (Var "n") 0),Loop (Alt [Seq [Terminal ' ',Constraint (Inc (Var "n") (CInt 1))]]) [],Constraint (GreaterThan (Var "n") (CInt 0))]])]
+    ===> Goal ::= (("H" "i" Sp<a> "t" "h" "e" "r" "e" Sp<b> "w" "o" "r" "l" "d" "!"));
+    ===> Sp<n> ::= ((<. n = 0 .> {((" " <. n += 1 .>))} <. n > 0 .>));
 
 Comments.
 
@@ -62,7 +63,8 @@ Comments.
     //
     // There are many ways to place comments.
     "//";
-    ===> Grammar [("Goal",[],Alt [Seq [Terminal 'f',Terminal 'o',Terminal 'o']]),("A",[],Alt [Seq [Terminal 'f',Terminal 'o',Terminal '/',Terminal '/']])]
+    ===> Goal ::= (("f" "o" "o"));
+    ===> A ::= (("f" "o" "/" "/"));
 
 Misplaced semicolon is a syntax error.
 
@@ -79,21 +81,21 @@ Misplaced semicolon is a syntax error.
 Sequence.
 
     Goal ::= "f" "o" "o";
-    ===> Grammar [("Goal",[],Seq [Terminal 'f',Terminal 'o',Terminal 'o'])]
+    ===> Goal ::= ("f" "o" "o");
 
 Alternation and recursion.
 
     Goal ::= "(" Goal ")" | "0";
-    ===> Grammar [("Goal",[],Alt [Seq [Terminal '(',NonTerminal "Goal" [],Terminal ')'],Seq [Terminal '0']])]
+    ===> Goal ::= (("(" Goal ")") | ("0"));
 
 Repetition.
 
     Goal ::= "(" {"0"} ")";
-    ===> Grammar [("Goal",[],Seq [Terminal '(',Loop (Seq [Terminal '0']) [],Terminal ')'])]
+    ===> Goal ::= ("(" {("0")} ")");
 
     Goal ::=
          <. a = 0 .> { "a" <. a += 1 .> } <. a = n .>
          <. b = 0 .> { "b" <. b += 1 .> } <. b = n .>
          <. c = 0 .> { "c" <. c += 1 .> } <. c = n .>
          ;
-    ===> Grammar [("Goal",[],Seq [Constraint (UnifyConst (Var "a") 0),Loop (Seq [Terminal 'a',Constraint (Inc (Var "a") (CInt 1))]) [UnifyVar (Var "a") (Var "n"),UnifyConst (Var "b") 0],Loop (Seq [Terminal 'b',Constraint (Inc (Var "b") (CInt 1))]) [UnifyVar (Var "b") (Var "n"),UnifyConst (Var "c") 0],Loop (Seq [Terminal 'c',Constraint (Inc (Var "c") (CInt 1))]) [UnifyVar (Var "c") (Var "n")]])]
+    ===> Goal ::= (<. a = 0 .> {("a" <. a += 1 .>)} {("b" <. b += 1 .>)} {("c" <. c += 1 .>)});
