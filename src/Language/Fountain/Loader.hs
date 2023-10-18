@@ -156,7 +156,7 @@ actuals = do
 --
 
 keyword s = do
-    try (string s)
+    _ <- try (string s)
     fspaces
 
 capWord = do
@@ -180,18 +180,18 @@ intlit = do
 
 leadingMinus :: Parser Integer
 leadingMinus = do
-    char '-'
+    _ <- char '-'
     return (-1)
 
 quotedString = do
-    char '"'
+    _ <- char '"'
     s <- many $ satisfy (\x -> x /= '"')
-    char '"'
+    _ <- char '"'
     fspaces
     return s
 
 charlit = do
-    char '#'
+    _ <- char '#'
     c <- digit
     cs <- many digit
     fspaces
@@ -199,13 +199,13 @@ charlit = do
 
 fspaces = do
     spaces
-    many comment
+    _ <- many comment
     return ()
 
 comment = do
-    string "//"
-    many $ satisfy (\x -> x /= '\n')
-    (do { char '\n'; return ()} <|> eof)
+    _ <- string "//"
+    _ <- many $ satisfy (\x -> x /= '\n')
+    (do { _ <- char '\n'; return ()} <|> eof)
     fspaces
     return ()
 
@@ -219,3 +219,4 @@ parseFountain text = parse fountain "" text
 parseConstConstraint :: String -> (Variable, Integer)
 parseConstConstraint text = case parse unifyConst "" text of
     Right (UnifyConst v i) -> (v, i)
+    v -> error ("parseConstConstraint: " ++ show v)

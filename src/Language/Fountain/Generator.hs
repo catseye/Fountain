@@ -13,6 +13,7 @@ data GenState = Generating String Store
 
 
 genTerminal c (Generating cs a) = (Generating (c:cs) a)
+genTerminal _c Failure = Failure
 
 obtainResult :: GenState -> Either String String
 obtainResult (Generating s _) = Right s
@@ -23,9 +24,9 @@ obtainResult Failure = Left "failure"
 -- we need some guidance of which one to pick
 --
 getPreCondition :: Expr -> Maybe Constraint
-getPreCondition (Seq (x:xs)) = getPreCondition x
+getPreCondition (Seq (x:_)) = getPreCondition x
 getPreCondition (Constraint c) = Just c
-getPreCondition x = Nothing
+getPreCondition _ = Nothing
 
 missingPreConditions choices =
     mapMaybe (\x -> case getPreCondition x of
@@ -36,43 +37,48 @@ missingPreConditions choices =
 
 gen :: Grammar -> GenState -> Expr -> GenState
 
-gen g st (Seq s) = genSeq g st s where
-    genSeq g st [] = st
-    genSeq g st (e : rest) =
+gen _g Failure _expr = Failure
+
+gen g st (Seq s) = genSeq st s where
+    genSeq st [] = st
+    genSeq st (e : rest) =
         case gen g st e of
             Failure -> Failure
-            st'     -> genSeq g st' rest
+            st'     -> genSeq st' rest
 
 -- We look at all the choices; each should start with a pre-condition
 -- determining whether we can select it; and we should narrow down our
 -- choices based on that. (Then pick randomly?  Or insist deterministic?)
-gen g st@(Generating str store) (Alt choices) =
+gen g state@(Generating str store) (Alt choices) =
     case missingPreConditions choices of
         missing@(_:_) ->
             error ("No pre-condition present on these Alt choices: " ++ (show missing))
         [] ->
             let
                 preConditionedChoices = map (\x -> (getPreCondition x, x)) choices
-                applicableChoices = filter (\(Just c, x) -> canApplyConstraint c store) preConditionedChoices
+                isApplicableChoice (Just c, x) = canApplyConstraint c store
+                isApplicableChoice _ = False
+                applicableChoices = filter (isApplicableChoice) preConditionedChoices
             in
-                genAlt g st applicableChoices where
-                genAlt g st [] = Failure
+                genAlt state applicableChoices
+            where
+                genAlt _st [] = Failure
                 -- we ignore the constraint because it will apply the constraint once descending into e
-                genAlt g st [(_, e)] = gen g st e
-                genAlt g st other =
+                genAlt st [(_, e)] = gen g st e
+                genAlt _st other =
                     error ("Multiple pre-conditions are satisfied in Alt: " ++ (show other))
 
 gen g state (Loop l postconditions) =
-    genLoop g state l (assertThereAreSome postconditions) where
-        genLoop g state e postconditions =
-            case gen g state e of
-                Failure -> state
-                state'@(Generating str store)  ->
+    genLoop state l (assertThereAreSome postconditions) where
+        genLoop st e postconditions =
+            case gen g st e of
+                Failure -> st
+                st'@(Generating str store)  ->
                     case checkLimit postconditions store of
                         -- All postconditions met, terminate the loop.
                         Just store'  -> Generating str store'
                         -- Not all postconditions met -- go 'round again
-                        Nothing      -> genLoop g state' e postconditions
+                        Nothing      -> genLoop st' e postconditions
         assertThereAreSome [] = error "No postconditions defined for this Loop"
         assertThereAreSome pcs = pcs
         checkLimit [] st = Just st
@@ -81,8 +87,7 @@ gen g state (Loop l postconditions) =
                 Nothing -> Nothing
                 Just st' -> checkLimit cs st'
 
-gen g st (Terminal c) = genTerminal c st
-gen g Failure (NonTerminal nt actuals) = Failure
+gen _g st (Terminal c) = genTerminal c st
 gen g (Generating text store) (NonTerminal nt actuals) =
     let
         formals = getFormals nt g
@@ -99,12 +104,13 @@ gen g (Generating text store) (NonTerminal nt actuals) =
             Failure ->
                 Failure
 
-gen g st@(Generating text store) (Constraint cstr) =
+gen _g (Generating text store) (Constraint cstr) =
     case applyConstraint cstr store of
         Just store' ->
             Generating text store'
         Nothing ->
             Failure
+
 
 applyConstraint :: Constraint -> Store -> Maybe Store
 applyConstraint (UnifyConst v i) st =

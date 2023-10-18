@@ -1,7 +1,5 @@
 module Language.Fountain.Preprocessor where
 
-import Data.List
-
 import Language.Fountain.Grammar
 import Language.Fountain.Constraint
 
@@ -35,7 +33,7 @@ coalesceSeq (other:rest) = other:(coalesceSeq rest)
 -- Copy any constraints that immediately follow a loop, into the loop itself.
 --
 decorateLoops :: Expr -> Expr
-decorateLoops (Seq exprs) = Seq (decorateSeq exprs) where
+decorateLoops (Seq seqExprs) = Seq (decorateSeq seqExprs) where
     decorateSeq [] = []
     decorateSeq ((Loop expr _):rest) =
         let
@@ -55,10 +53,11 @@ decorateLoops (Seq exprs) = Seq (decorateSeq exprs) where
             isConstraint _ = False
 
             extractConstraint (Constraint c) = c
+            extractConstraint _ = error "not a constraint"
         in
             (constraints', exprs')
 decorateLoops (Alt exprs) = Alt (map decorateLoops exprs)
-decorateLoops (Loop expr _) = error "Cannot preprocess Loop that is not in Seq"
+decorateLoops (Loop _expr _cs) = error "Cannot preprocess Loop that is not in Seq"
 decorateLoops other = other
 
 --

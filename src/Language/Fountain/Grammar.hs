@@ -1,4 +1,8 @@
-module Language.Fountain.Grammar where
+module Language.Fountain.Grammar
+  (
+    Expr(Seq, Alt, Loop, Terminal, NonTerminal, Constraint), Grammar(Grammar),
+    startSymbol, production, getFormals
+  ) where
 
 import Data.List (intercalate)
 
@@ -41,13 +45,16 @@ instance Show Grammar where
     show (Grammar ((name,vars,expr):rest)) = name ++ (showVars vars) ++ " ::= " ++ (show expr) ++ ";\n" ++ (show $ Grammar rest)
 
 
+startSymbol :: Grammar -> NTName
 startSymbol (Grammar ((term, _, _) : _)) = term
 startSymbol (Grammar []) = error "No productions in grammar"
 
-production nt (Grammar ((term, formals, expr) : rest)) =
+production :: NTName -> Grammar -> Expr
+production nt (Grammar ((term, _formals, expr) : rest)) =
     if term == nt then expr else production nt (Grammar rest)
 production nt (Grammar []) = error ("Production '" ++ nt ++ "' not found")
 
-getFormals nt (Grammar ((term, formals, expr) : rest)) =
+getFormals :: NTName -> Grammar -> [Variable]
+getFormals nt (Grammar ((term, formals, _expr) : rest)) =
     if term == nt then formals else getFormals nt (Grammar rest)
 getFormals nt (Grammar []) = error ("Production '" ++ nt ++ "' not found")

@@ -12,8 +12,8 @@ data ParseState = Parsing String Store
 
 expectTerminal :: Char -> ParseState -> ParseState
 expectTerminal tc (Parsing (c:cs) a) = if c == tc then (Parsing cs a) else Failure
-expectTerminal tc (Parsing [] a) = Failure
-expectTerminal tc Failure = Failure
+expectTerminal _tc (Parsing [] _a) = Failure
+expectTerminal _tc Failure = Failure
 
 obtainResult :: ParseState -> Either String String
 obtainResult (Parsing s _) = Right s
@@ -22,28 +22,30 @@ obtainResult Failure = Left "failure"
 
 parse :: Grammar -> ParseState -> Expr -> ParseState
 
-parse g st (Seq s) = parseSeq g st s where
-    parseSeq g st [] = st
-    parseSeq g st (e : rest) =
+parse _g Failure _expr = Failure
+
+parse g state (Seq s) = parseSeq state s where
+    parseSeq st [] = st
+    parseSeq st (e : rest) =
         case parse g st e of
             Failure -> Failure
-            st'     -> parseSeq g st' rest
+            st'     -> parseSeq st' rest
 
-parse g st (Alt s) = parseAlt g st s where
-    parseAlt g st [] = Failure
-    parseAlt g st (e : rest) =
+parse g state (Alt s) = parseAlt state s where
+    parseAlt _st [] = Failure
+    parseAlt st (e : rest) =
         case parse g st e of
-            Failure -> parseAlt g st rest
+            Failure -> parseAlt st rest
             st'     -> st'
 
-parse g st (Loop l _) = parseLoop g st l where
-    parseLoop g st e =
+parse g state (Loop l _) = parseLoop state l where
+    parseLoop st e =
         case parse g st e of
             Failure -> st
-            st'     -> parseLoop g st' e
+            st'     -> parseLoop st' e
 
-parse g st (Terminal c) = expectTerminal c st
-parse g Failure (NonTerminal nt actuals) = Failure
+parse _g state (Terminal c) = expectTerminal c state
+
 parse g (Parsing text store) (NonTerminal nt actuals) =
     let
         formals = getFormals nt g
@@ -60,12 +62,13 @@ parse g (Parsing text store) (NonTerminal nt actuals) =
             Failure ->
                 Failure
 
-parse g st@(Parsing text store) (Constraint cstr) =
+parse _g (Parsing text store) (Constraint cstr) =
     case applyConstraint cstr store of
         Just store' ->
             Parsing text store'
         Nothing ->
             Failure
+
 
 applyConstraint :: Constraint -> Store -> Maybe Store
 applyConstraint (UnifyConst v i) st =

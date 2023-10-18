@@ -1,4 +1,4 @@
-module Main where
+module Main (main) where
 
 import System.Environment
 import System.Exit
@@ -42,14 +42,14 @@ main = do
             let initialState = Parser.constructState text initialParams
             let finalState = Parser.parseFrom grammar initialState
             output $ if (dumpState flags) then show finalState else formatParseResult $ Parser.obtainResult finalState
-            exitWith $ either (\msg -> ExitFailure 1) (\remaining -> ExitSuccess) $ Parser.obtainResult finalState
+            exitWith $ either (\_msg -> ExitFailure 1) (\_remaining -> ExitSuccess) $ Parser.obtainResult finalState
         ("generate":grammarFileName:initialParams) -> do
             grammar <- loadSource grammarFileName
             let grammar' = Preprocessor.preprocessGrammar grammar
             let initialState = Generator.constructState initialParams
             let finalState = Generator.generateFrom grammar' initialState
             output $ if (dumpState flags) then show finalState else formatGenerateResult $ Generator.obtainResult finalState
-            exitWith $ either (\msg -> ExitFailure 1) (\remaining -> ExitSuccess) $ Generator.obtainResult finalState
+            exitWith $ either (\_msg -> ExitFailure 1) (\_remaining -> ExitSuccess) $ Generator.obtainResult finalState
         _ -> usage
 
 usage = abortWith
@@ -73,8 +73,8 @@ loadSource fileName = do
     case Loader.parseFountain text of
         Right g -> do
             return g
-        Left error ->
-            abortWith $ show error
+        Left err ->
+            abortWith $ show err
 
 loadText fileName = do
     handle <- if fileName == "--" then return stdin else openFile fileName ReadMode
