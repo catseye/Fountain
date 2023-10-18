@@ -39,7 +39,7 @@ gen :: Grammar -> GenState -> Expr -> GenState
 
 gen _g Failure _expr = Failure
 
-gen g st (Seq s) = genSeq st s where
+gen g state (Seq s) = genSeq state s where
     genSeq st [] = st
     genSeq st (e : rest) =
         case gen g st e of
@@ -49,14 +49,14 @@ gen g st (Seq s) = genSeq st s where
 -- We look at all the choices; each should start with a pre-condition
 -- determining whether we can select it; and we should narrow down our
 -- choices based on that. (Then pick randomly?  Or insist deterministic?)
-gen g state@(Generating str store) (Alt choices) =
+gen g state@(Generating _str store) (Alt choices) =
     case missingPreConditions choices of
         missing@(_:_) ->
             error ("No pre-condition present on these Alt choices: " ++ (show missing))
         [] ->
             let
                 preConditionedChoices = map (\x -> (getPreCondition x, x)) choices
-                isApplicableChoice (Just c, x) = canApplyConstraint c store
+                isApplicableChoice (Just c, _) = canApplyConstraint c store
                 isApplicableChoice _ = False
                 applicableChoices = filter (isApplicableChoice) preConditionedChoices
             in
@@ -68,24 +68,22 @@ gen g state@(Generating str store) (Alt choices) =
                 genAlt _st other =
                     error ("Multiple pre-conditions are satisfied in Alt: " ++ (show other))
 
-gen g state (Loop l postconditions) =
-    genLoop state l (assertThereAreSome postconditions) where
-        genLoop st e postconditions =
-            case gen g st e of
-                Failure -> st
-                st'@(Generating str store)  ->
-                    case checkLimit postconditions store of
-                        -- All postconditions met, terminate the loop.
-                        Just store'  -> Generating str store'
-                        -- Not all postconditions met -- go 'round again
-                        Nothing      -> genLoop st' e postconditions
-        assertThereAreSome [] = error "No postconditions defined for this Loop"
-        assertThereAreSome pcs = pcs
-        checkLimit [] st = Just st
-        checkLimit (c:cs) st =
-            case applyConstraint c st of
-                Nothing -> Nothing
-                Just st' -> checkLimit cs st'
+gen _g _state (Loop _ []) = error "No postconditions defined for this Loop"
+gen g state (Loop l postconditions) = genLoop state l where
+    genLoop st e =
+        case gen g st e of
+            Failure -> st
+            st'@(Generating str store)  ->
+                case checkLimit postconditions store of
+                    -- All postconditions met, terminate the loop.
+                    Just store'  -> Generating str store'
+                    -- Not all postconditions met -- go 'round again
+                    Nothing      -> genLoop st' e
+    checkLimit [] st = Just st
+    checkLimit (c:cs) st =
+        case applyConstraint c st of
+            Nothing -> Nothing
+            Just st' -> checkLimit cs st'
 
 gen _g st (Terminal c) = genTerminal c st
 gen g (Generating text store) (NonTerminal nt actuals) =

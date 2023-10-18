@@ -4,7 +4,7 @@ PROG=fountain
 
 if command -v ghc >/dev/null 2>&1; then
     echo "building $PROG.exe with ghc"
-    #WARNS="-Wall -Wno-missing-signatures -Werror"
+    WARNS="-Wall -Wno-missing-signatures -Werror"
     (cd src && ghc $WARNS --make Main.hs -o ../bin/$PROG.exe)
 else
     echo "ghc not found, not building $PROG.exe"
