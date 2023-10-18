@@ -20,31 +20,31 @@ preprocessExpr = eliminateSingleAlts . coalesceConstraints . decorateLoops
 -- Coalesce constraints
 --
 
-coalesceConstraints (Seq exprs) = Seq (cc exprs)
+coalesceConstraints (Seq exprs) = Seq (coalesceSeq exprs)
 coalesceConstraints (Alt exprs) = Alt (map coalesceConstraints exprs)
 coalesceConstraints (Loop expr cs) = Loop (coalesceConstraints expr) cs  -- cs should be empty here actually, because decorateLoops comes later
 coalesceConstraints other = other
 
-cc :: [Expr] -> [Expr]
-cc [] = []
-cc (Constraint c1:Constraint c2:rest) =
-    cc ((Constraint $ Both c1 c2):rest)
-cc (other:rest) = other:(cc rest)
+coalesceSeq :: [Expr] -> [Expr]
+coalesceSeq [] = []
+coalesceSeq (Constraint c1:Constraint c2:rest) =
+    coalesceSeq ((Constraint $ Both c1 c2):rest)
+coalesceSeq (other:rest) = other:(coalesceSeq rest)
 
 --
 -- Copy any constraints that immediately follow a loop, into the loop itself.
 --
 decorateLoops :: Expr -> Expr
-decorateLoops (Seq exprs) = Seq (preprocessSeq exprs) where
-    preprocessSeq [] = []
-    preprocessSeq ((Loop expr _):rest) =
+decorateLoops (Seq exprs) = Seq (decorateSeq exprs) where
+    decorateSeq [] = []
+    decorateSeq ((Loop expr _):rest) =
         let
             expr' = decorateLoops expr
             (constraints, rest') = absorbConstraints rest
         in
-            (Loop expr' constraints):(preprocessSeq rest')
-    preprocessSeq (expr:rest) =
-        (decorateLoops expr):(preprocessSeq rest)
+            (Loop expr' constraints):(decorateSeq rest')
+    decorateSeq (expr:rest) =
+        (decorateLoops expr):(decorateSeq rest)
     absorbConstraints :: [Expr] -> ([Constraint], [Expr])
     absorbConstraints exprs =
         let
