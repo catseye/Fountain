@@ -1,6 +1,8 @@
 module Language.Fountain.Grammar
   (
-    Expr(Seq, Alt, Loop, Terminal, NonTerminal, Constraint), Grammar(Grammar),
+    Expr(Seq, Alt, Loop, Terminal, NonTerminal, Constraint),
+    Production(Production, ntname, params, backtrackable, constituents),
+    Grammar(Grammar),
     startSymbol, production, getFormals
   ) where
 
@@ -37,24 +39,35 @@ showVars [] = ""
 showVars vars = "<" ++ (intercalate ", " (map (show) vars)) ++ ">"
 
 
-data Grammar = Grammar [(NTName, [Variable], Expr)]
+data Production = Production {
+    ntname :: String,
+    params :: [Variable],
+    backtrackable :: Bool,
+    constituents :: Expr
+} deriving (Ord, Eq)
+
+instance Show Production where
+    show p = (ntname p) ++ (showVars $ params p) ++ (showBT $ backtrackable p) ++ " ::= " ++ (show (constituents p)) ++ ";\n"
+        where showBT b = if b then "(*)" else ""
+
+data Grammar = Grammar [Production]
     deriving (Ord, Eq)
 
 instance Show Grammar where
     show (Grammar []) = ""
-    show (Grammar ((name,vars,expr):rest)) = name ++ (showVars vars) ++ " ::= " ++ (show expr) ++ ";\n" ++ (show $ Grammar rest)
+    show (Grammar (prod:rest)) = (show prod) ++ (show $ Grammar rest)
 
 
 startSymbol :: Grammar -> NTName
-startSymbol (Grammar ((term, _, _) : _)) = term
+startSymbol (Grammar (prod : _)) = ntname prod
 startSymbol (Grammar []) = error "No productions in grammar"
 
 production :: NTName -> Grammar -> Expr
-production nt (Grammar ((term, _formals, expr) : rest)) =
-    if term == nt then expr else production nt (Grammar rest)
+production nt (Grammar (prod : rest)) =
+    if nt == (ntname prod) then constituents prod else production nt (Grammar rest)
 production nt (Grammar []) = error ("Production '" ++ nt ++ "' not found")
 
 getFormals :: NTName -> Grammar -> [Variable]
-getFormals nt (Grammar ((term, formals, _expr) : rest)) =
-    if term == nt then formals else getFormals nt (Grammar rest)
+getFormals nt (Grammar (prod : rest)) =
+    if nt == (ntname prod) then params prod else getFormals nt (Grammar rest)
 getFormals nt (Grammar []) = error ("Production '" ++ nt ++ "' not found")

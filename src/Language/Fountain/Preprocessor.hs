@@ -7,10 +7,11 @@ import Language.Fountain.Constraint
 preprocessGrammar :: Grammar -> Grammar
 preprocessGrammar (Grammar productions) =
     let
-        productions' = map (\(term, formals, expr) -> (term, formals, preprocessExpr expr)) productions
+        productions' = map (preprocessProduction) productions
     in
         Grammar productions'
 
+preprocessProduction p@Production{ constituents=c } = p { constituents=preprocessExpr c }
 preprocessExpr = eliminateSingleAlts . coalesceConstraints . decorateLoops
 
 

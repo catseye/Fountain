@@ -21,7 +21,7 @@ prod = do
     keyword "::="
     e <- expr0
     keyword ";"
-    return (nt, p, e)
+    return Production{ ntname=nt, params=p, backtrackable=False, constituents=e }
 
 formals = do
     keyword "<"
