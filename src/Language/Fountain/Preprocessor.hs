@@ -10,21 +10,41 @@ preprocessGrammar :: Grammar -> Grammar
 preprocessGrammar (Grammar productions) =
     let
         productions' = map (\(term, formals, expr) -> (term, formals, preprocessExpr expr)) productions
-        productions'' = map (\(term, formals, expr) -> (term, formals, eliminateSingleAlts expr)) productions'
     in
-        Grammar productions''
+        Grammar productions'
 
-preprocessExpr :: Expr -> Expr
-preprocessExpr (Seq exprs) = Seq (preprocessSeq exprs) where
+preprocessExpr = eliminateSingleAlts . coalesceConstraints . decorateLoops
+
+
+--
+-- Coalesce constraints
+--
+
+coalesceConstraints (Seq exprs) = Seq (cc exprs)
+coalesceConstraints (Alt exprs) = Alt (map coalesceConstraints exprs)
+coalesceConstraints (Loop expr cs) = Loop (coalesceConstraints expr) cs  -- cs should be empty here actually, because decorateLoops comes later
+coalesceConstraints other = other
+
+cc :: [Expr] -> [Expr]
+cc [] = []
+cc (Constraint c1:Constraint c2:rest) =
+    cc ((Constraint $ Both c1 c2):rest)
+cc (other:rest) = other:(cc rest)
+
+--
+-- Copy any constraints that immediately follow a loop, into the loop itself.
+--
+decorateLoops :: Expr -> Expr
+decorateLoops (Seq exprs) = Seq (preprocessSeq exprs) where
     preprocessSeq [] = []
     preprocessSeq ((Loop expr _):rest) =
         let
-            expr' = preprocessExpr expr
+            expr' = decorateLoops expr
             (constraints, rest') = absorbConstraints rest
         in
             (Loop expr' constraints):(preprocessSeq rest')
     preprocessSeq (expr:rest) =
-        (preprocessExpr expr):(preprocessSeq rest)
+        (decorateLoops expr):(preprocessSeq rest)
     absorbConstraints :: [Expr] -> ([Constraint], [Expr])
     absorbConstraints exprs =
         let
@@ -37,10 +57,13 @@ preprocessExpr (Seq exprs) = Seq (preprocessSeq exprs) where
             extractConstraint (Constraint c) = c
         in
             (constraints', exprs')
-preprocessExpr (Alt exprs) = Alt (map preprocessExpr exprs)
-preprocessExpr (Loop expr _) = error "Cannot preprocess Loop that is not in Seq"
-preprocessExpr other = other
+decorateLoops (Alt exprs) = Alt (map decorateLoops exprs)
+decorateLoops (Loop expr _) = error "Cannot preprocess Loop that is not in Seq"
+decorateLoops other = other
 
+--
+-- Any Alt with only a single child can be replaced by that single child.
+--
 eliminateSingleAlts (Alt [expr]) = eliminateSingleAlts expr
 eliminateSingleAlts (Alt exprs) = Alt $ map (eliminateSingleAlts) exprs
 eliminateSingleAlts (Seq exprs) = Seq $ map (eliminateSingleAlts) exprs

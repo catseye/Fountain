@@ -72,7 +72,6 @@ TODO
 ### Semantics
 
 *   Params on top-level Goal mean those values must be provided from environment.
-*   Combine two sequenced constraints into a "both" constraint internally.
 
 ### Implementation
 
