@@ -63,7 +63,7 @@ gen g state@(Generating _str store) (Alt choices) =
                 genAlt state applicableChoices
             where
                 genAlt _st [] = Failure
-                -- we ignore the constraint because it will apply the constraint once descending into e
+                -- we ignore the constraint here because it will be found and applied when we descend into e
                 genAlt st [(_, e)] = gen g st e
                 genAlt _st other =
                     error ("Multiple pre-conditions are satisfied in Alt: " ++ (show other))
@@ -166,8 +166,8 @@ canApplyConstraint c store =
 constructState :: [String] -> GenState
 constructState initialParams = Generating "" (constructStore initialParams)
 
-generateFrom :: Grammar -> GenState ->  GenState
-generateFrom g state = revgen $ gen g state (production (startSymbol g) g)
+generateFrom :: Grammar -> String -> GenState ->  GenState
+generateFrom g start state = revgen $ gen g state (production start g)
     where
         revgen (Generating s a) = Generating (reverse s) a
         revgen other = other

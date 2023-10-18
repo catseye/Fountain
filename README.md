@@ -75,7 +75,7 @@ TODO
 
 ### Implementation
 
-*   Command-line option to start at a different goal symbol.
+*   Improved pretty-printing (coalesced terminals, no unnecessary parens, etc.)
 
 ### Documentation
 
@@ -84,6 +84,9 @@ TODO
 
 ### Aspirational
 
+*   Allow "fuel" to be tracked, to ensure the storage is bounded
+    linearly to the amount of input.  This aims to ensure that the
+    grammar is contained within PSPACE.
 *   Use Fountain's own parsing facilities to parse the Fountain
     grammar description!  It's not entirely clear to me how much
     of it it could handle.  But it would be close to "writing
@@ -106,6 +109,9 @@ abort with an error message.
 Greater than or equal and less than or equal constraints.
 
 "Both" combinator on constraints (which really needs reworking).
+
+The `--start-symbol` option may now be passed to `fountain` to
+cause it to start parsing or generating at the named non-terminal.
 
 Implementation improvements such as better flattening of the AST
 representing the grammar during its parsing, and pretty-printing

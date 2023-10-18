@@ -120,5 +120,5 @@ applyRelConstraint op v e st =
 constructState :: String -> [String] -> ParseState
 constructState text initialParams = Parsing text $ constructStore initialParams
 
-parseFrom :: Grammar -> ParseState -> ParseState
-parseFrom g st = parse g st (production (startSymbol g) g)
+parseFrom :: Grammar -> String -> ParseState -> ParseState
+parseFrom g start st = parse g st (production start  g)
