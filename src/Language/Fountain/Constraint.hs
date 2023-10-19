@@ -2,19 +2,12 @@ module Language.Fountain.Constraint where
 
 
 data Variable = Var String
-    deriving (Ord, Eq)
-
-instance Show Variable where
-    show (Var s) = s
+    deriving (Show, Ord, Eq)
 
 -- A "c-expr" is a simple expression appearing inside a constraint.
 data CExpr = CVar Variable
            | CInt Integer
-    deriving (Ord, Eq)
-
-instance Show CExpr where
-    show (CVar v) = show v
-    show (CInt i) = show i
+    deriving (Show, Ord, Eq)
 
 data Constraint = UnifyConst Variable Integer
                 | UnifyVar Variable Variable
@@ -25,15 +18,19 @@ data Constraint = UnifyConst Variable Integer
                 | LessThan Variable CExpr
                 | LessThanOrEqual Variable CExpr
                 | Both Constraint Constraint
-    deriving (Ord, Eq)
+    deriving (Show, Ord, Eq)
 
-instance Show Constraint where
-    show (UnifyConst v i) = (show v) ++ " = " ++ (show i)
-    show (UnifyVar v w) = (show v) ++ " = " ++ (show w)
-    show (Inc v e) = (show v) ++ " += " ++ (show e)
-    show (Dec v e) = (show v) ++ " -= " ++ (show e)
-    show (GreaterThan v e) = (show v) ++ " > " ++ (show e)
-    show (GreaterThanOrEqual v e) = (show v) ++ " >= " ++ (show e)
-    show (LessThan v e) = (show v) ++ " < " ++ (show e)
-    show (LessThanOrEqual v e) = (show v) ++ " <= " ++ (show e)
-    show (Both c1 c2) = "&& " ++ (show c1) ++ ", " ++ (show c2)
+depictVar (Var s) = s
+
+depictCExpr (CVar v) = depictVar v
+depictCExpr (CInt i) = show i
+
+depictConstraint (UnifyConst v i) = (depictVar v) ++ " = " ++ (show i)
+depictConstraint (UnifyVar v w) = (depictVar v) ++ " = " ++ (depictVar w)
+depictConstraint (Inc v e) = (depictVar v) ++ " += " ++ (depictCExpr e)
+depictConstraint (Dec v e) = (depictVar v) ++ " -= " ++ (depictCExpr e)
+depictConstraint (GreaterThan v e) = (depictVar v) ++ " > " ++ (depictCExpr e)
+depictConstraint (GreaterThanOrEqual v e) = (depictVar v) ++ " >= " ++ (depictCExpr e)
+depictConstraint (LessThan v e) = (depictVar v) ++ " < " ++ (depictCExpr e)
+depictConstraint (LessThanOrEqual v e) = (depictVar v) ++ " <= " ++ (depictCExpr e)
+depictConstraint (Both c1 c2) = "&& " ++ (depictConstraint c1) ++ ", " ++ (depictConstraint c2)

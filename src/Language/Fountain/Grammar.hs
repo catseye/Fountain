@@ -3,6 +3,7 @@ module Language.Fountain.Grammar
     Expr(Seq, Alt, Loop, Terminal, NonTerminal, Constraint),
     Production(Production, ntname, params, backtrackable, constituents),
     Grammar(Grammar),
+    depictExpr, depictProduction, depictGrammar, depictVars,
     startSymbol, production, getFormals,
     getPreCondition, missingPreConditions
   ) where
@@ -26,19 +27,7 @@ data Expr = Seq [Expr]
           | Terminal Char
           | NonTerminal NTName [Variable]
           | Constraint Constraint
-    deriving (Ord, Eq)
-
-instance Show Expr where
-    show (Seq exprs) = "(" ++ (intercalate " " (map (show) exprs)) ++ ")"
-    show (Alt _ exprs) = "(" ++ (intercalate " | " (map (show) exprs)) ++ ")"
-    show (Loop expr _) = "{" ++ (show expr) ++ "}"
-    show (Terminal c) = "\"" ++ [c] ++ "\""
-    show (NonTerminal name vars) = name ++ showVars vars
-    show (Constraint c) = "<. " ++ (show c) ++ " .>"
-
-
-showVars [] = ""
-showVars vars = "<" ++ (intercalate ", " (map (show) vars)) ++ ">"
+    deriving (Show, Ord, Eq)
 
 
 data Production = Production {
@@ -46,18 +35,32 @@ data Production = Production {
     params :: [Variable],
     backtrackable :: Bool,
     constituents :: Expr
-} deriving (Ord, Eq)
+} deriving (Show, Ord, Eq)
 
-instance Show Production where
-    show p = (ntname p) ++ (showVars $ params p) ++ (showBT $ backtrackable p) ++ " ::= " ++ (show (constituents p)) ++ ";\n"
-        where showBT b = if b then "(*)" else ""
 
 data Grammar = Grammar [Production]
-    deriving (Ord, Eq)
+    deriving (Show, Ord, Eq)
 
-instance Show Grammar where
-    show (Grammar []) = ""
-    show (Grammar (prod:rest)) = (show prod) ++ (show $ Grammar rest)
+--
+-- Pretty printing
+--
+
+depictExpr (Seq exprs) = "(" ++ (intercalate " " (map (depictExpr) exprs)) ++ ")"
+depictExpr (Alt _ exprs) = "(" ++ (intercalate " | " (map (depictExpr) exprs)) ++ ")"
+depictExpr (Loop expr _) = "{" ++ (depictExpr expr) ++ "}"
+depictExpr (Terminal c) = "\"" ++ [c] ++ "\""
+depictExpr (NonTerminal name vars) = name ++ depictVars vars
+depictExpr (Constraint c) = "<. " ++ (depictConstraint c) ++ " .>"
+
+depictVars [] = ""
+depictVars vars = "<" ++ (intercalate ", " (map (show) vars)) ++ ">"
+
+depictProduction p =
+    (ntname p) ++ (depictVars $ params p) ++ (showBT $ backtrackable p) ++ " ::= " ++ (show (constituents p)) ++ ";\n"
+    where showBT b = if b then "(*)" else ""
+
+depictGrammar (Grammar []) = ""
+depictGrammar (Grammar (prod:rest)) = (show prod) ++ (show $ Grammar rest)
 
 --
 -- Accessors and utilities
