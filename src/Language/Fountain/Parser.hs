@@ -31,12 +31,19 @@ parse g state (Seq s) = parseSeq state s where
             Failure -> Failure
             st'     -> parseSeq st' rest
 
-parse g state (Alt _bt s) = parseAlt state s where
+-- Hello, Mrs Backtracking Alternation!
+parse g state (Alt True s) = parseAlt state s where
     parseAlt _st [] = Failure
     parseAlt st (e : rest) =
         case parse g st e of
             Failure -> parseAlt st rest
             st'     -> st'
+
+-- Hello, Mrs Non-Backtracking Alternation!
+parse g state (Alt False s) = parseAlt state s where
+    parseAlt _st [] = Failure
+    -- FIXME: this should do "pick an applicable one"
+    parseAlt st (e : _) = parse g st e
 
 parse g state (Loop l _) = parseLoop state l where
     parseLoop st e =

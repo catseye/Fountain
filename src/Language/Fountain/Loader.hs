@@ -20,7 +20,7 @@ prod = do
     p <- option [] formals
     bt <- option False (do { keyword "(*)"; return True })
     keyword "::="
-    e <- expr0
+    e <- expr0 bt
     keyword ";"
     return Production{ ntname=nt, params=p, backtrackable=bt, constituents=e }
 
@@ -30,12 +30,12 @@ formals = do
     keyword ">"
     return v
 
-expr0 = do
-    es <- sepBy (expr1) (keyword "|")
-    return $ Alt False es
+expr0 bt = do
+    es <- sepBy (expr1 bt) (keyword "|")
+    return $ Alt bt es
 
-expr1 = do
-    es <- many1 term
+expr1 bt = do
+    es <- many1 $ term bt
     return $ Seq $ flattenseq es where
         flattenseq [] = []
         flattenseq (s:ss) = case s of
@@ -43,27 +43,45 @@ expr1 = do
             Seq xs -> xs ++ (flattenseq ss)
             _      -> (s:flattenseq ss)
 
-term = (try parenExpr) <|> (try loopExpr) <|> (try constraintExpr) <|> (try terminal) <|> nonterminal
+term bt = (try $ parenExpr bt) <|> (try $ loopExpr bt) <|> (try $ constraintExpr bt) <|> (try $ terminal bt) <|> nonterminal bt
 
-parenExpr = do
+parenExpr bt = do
     keyword "("
-    e <- expr0
+    e <- expr0 bt
     keyword ")"
     return e
 
-loopExpr = do
+loopExpr bt = do
     keyword "{"
-    e <- expr0
+    e <- expr0 bt
     keyword "}"
     return $ Loop e []
 
-constraintExpr = do
+constraintExpr _bt = do
     keyword "<."
     c <- constrainer
     keyword ".>"
     return $ Constraint $ c
 
-constrainer = (try unifyConst) <|> (try unifyVar) <|> (try inc) <|> (try dec) <|> (try gte) <|> (try gt) <|> (try lte) <|> (try lt) <|> (try both)
+terminal _bt = do
+    s <- quotedString <|> charlit
+    case s of
+        [c] -> return $ Terminal $ c
+        _ -> return $ Seq $ map (\c -> Terminal c) s
+
+nonterminal _bt = do
+    s <- capWord
+    a <- option [] actuals
+    return $ NonTerminal s a
+    where
+        actuals = do
+            keyword "<"
+            v <- sepBy (variable) (keyword ",")
+            keyword ">"
+            return v
+
+constrainer = (try unifyConst) <|> (try unifyVar) <|> (try inc) <|> (try dec) <|>
+                (try gte) <|> (try gt) <|> (try lte) <|> (try lt) <|> (try both)
 
 unifyConst = do
     v <- variable
@@ -134,23 +152,6 @@ cIntExpr = do
 cVarExpr = do
     v <- variable
     return $ CVar v
-
-terminal = do
-    s <- quotedString <|> charlit
-    case s of
-        [c] -> return $ Terminal $ c
-        _ -> return $ Seq $ map (\c -> Terminal c) s
-
-nonterminal = do
-    s <- capWord
-    a <- option [] actuals
-    return $ NonTerminal s a
-
-actuals = do
-    keyword "<"
-    v <- sepBy (variable) (keyword ",")
-    keyword ">"
-    return v
 
 --
 -- Low level: Concrete things

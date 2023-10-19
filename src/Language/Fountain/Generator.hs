@@ -48,7 +48,7 @@ gen g state (Seq s) = genSeq state s where
 
 -- We look at all the choices; each should start with a pre-condition
 -- determining whether we can select it; and we should narrow down our
--- choices based on that. (Then pick randomly?  Or insist deterministic?)
+-- choices based on that.
 gen g state@(Generating _str store) (Alt False choices) =
     case missingPreConditions choices of
         missing@(_:_) ->
