@@ -41,10 +41,10 @@ parse g state (Alt True choices) = parseAlt state choices where
             st'     -> st'
 
 -- Hello, Mrs Non-Backtracking Alternation!
-parse g state@(Parsing _str store) (Alt False choices) =
+parse g state@(Parsing _str store) expr@(Alt False choices) =
     case missingPreConditions choices of
         missing@(_:_) ->
-            error ("No pre-condition present on these Alt choices: " ++ (show missing))
+            error ("No pre-condition present on these Alt choices: " ++ (show missing) ++ " of this: " ++ (show expr))
         [] ->
             let
                 preConditionedChoices = map (\x -> (getPreCondition x, x)) choices

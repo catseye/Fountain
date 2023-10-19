@@ -39,18 +39,20 @@ main = do
     case args' of
         ["load", grammarFileName] -> do
             grammar <- loadSource grammarFileName
-            output $ show grammar
+            -- TODO: add flag to show internal format
+            output $ Grammar.depictGrammar grammar
         ["preprocess", grammarFileName] -> do
             grammar <- loadSource grammarFileName
             let grammar' = Preprocessor.preprocessGrammar grammar
-            output $ show grammar'
+            -- TODO: add flag to show internal format
+            output $ Grammar.depictGrammar grammar'
         ("parse":grammarFileName:textFileName:initialParams) -> do
             grammar <- loadSource grammarFileName
-            -- TODO: preprocess here? why/why not?
+            let grammar' = Preprocessor.preprocessGrammar grammar
             text <- loadText textFileName
-            let start = getStartSymbol grammar flags
+            let start = getStartSymbol grammar' flags
             let initialState = Parser.constructState text initialParams
-            let finalState = Parser.parseFrom grammar start initialState
+            let finalState = Parser.parseFrom grammar' start initialState
             output $ if (dumpState flags) then show finalState else formatParseResult $ Parser.obtainResult finalState
             exitWith $ either (\_msg -> ExitFailure 1) (\_remaining -> ExitSuccess) $ Parser.obtainResult finalState
         ("generate":grammarFileName:initialParams) -> do

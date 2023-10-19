@@ -53,14 +53,14 @@ depictExpr (NonTerminal name vars) = name ++ depictVars vars
 depictExpr (Constraint c) = "<. " ++ (depictConstraint c) ++ " .>"
 
 depictVars [] = ""
-depictVars vars = "<" ++ (intercalate ", " (map (show) vars)) ++ ">"
+depictVars vars = "<" ++ (intercalate ", " (map (depictVar) vars)) ++ ">"
 
 depictProduction p =
-    (ntname p) ++ (depictVars $ params p) ++ (showBT $ backtrackable p) ++ " ::= " ++ (show (constituents p)) ++ ";\n"
+    (ntname p) ++ (depictVars $ params p) ++ (showBT $ backtrackable p) ++ " ::= " ++ (depictExpr (constituents p)) ++ ";\n"
     where showBT b = if b then "(*)" else ""
 
 depictGrammar (Grammar []) = ""
-depictGrammar (Grammar (prod:rest)) = (show prod) ++ (show $ Grammar rest)
+depictGrammar (Grammar (prod:rest)) = (depictProduction prod) ++ (depictGrammar $ Grammar rest)
 
 --
 -- Accessors and utilities
