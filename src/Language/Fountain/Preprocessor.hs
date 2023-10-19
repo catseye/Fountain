@@ -20,7 +20,7 @@ preprocessExpr = eliminateSingleAlts . coalesceConstraints . decorateLoops
 --
 
 coalesceConstraints (Seq exprs) = Seq (coalesceSeq exprs)
-coalesceConstraints (Alt exprs) = Alt (map coalesceConstraints exprs)
+coalesceConstraints (Alt bt exprs) = Alt bt (map coalesceConstraints exprs)
 coalesceConstraints (Loop expr cs) = Loop (coalesceConstraints expr) cs  -- cs should be empty here actually, because decorateLoops comes later
 coalesceConstraints other = other
 
@@ -57,15 +57,15 @@ decorateLoops (Seq seqExprs) = Seq (decorateSeq seqExprs) where
             extractConstraint _ = error "not a constraint"
         in
             (constraints', exprs')
-decorateLoops (Alt exprs) = Alt (map decorateLoops exprs)
+decorateLoops (Alt bt exprs) = Alt bt (map decorateLoops exprs)
 decorateLoops (Loop _expr _cs) = error "Cannot preprocess Loop that is not in Seq"
 decorateLoops other = other
 
 --
 -- Any Alt with only a single child can be replaced by that single child.
 --
-eliminateSingleAlts (Alt [expr]) = eliminateSingleAlts expr
-eliminateSingleAlts (Alt exprs) = Alt $ map (eliminateSingleAlts) exprs
+eliminateSingleAlts (Alt _ [expr]) = eliminateSingleAlts expr
+eliminateSingleAlts (Alt bt exprs) = Alt bt $ map (eliminateSingleAlts) exprs
 eliminateSingleAlts (Seq exprs) = Seq $ map (eliminateSingleAlts) exprs
 eliminateSingleAlts (Loop expr cs) = Loop (eliminateSingleAlts expr) cs
 eliminateSingleAlts other = other

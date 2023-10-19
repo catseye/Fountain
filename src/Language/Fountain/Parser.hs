@@ -31,7 +31,7 @@ parse g state (Seq s) = parseSeq state s where
             Failure -> Failure
             st'     -> parseSeq st' rest
 
-parse g state (Alt s) = parseAlt state s where
+parse g state (Alt _bt s) = parseAlt state s where
     parseAlt _st [] = Failure
     parseAlt st (e : rest) =
         case parse g st e of

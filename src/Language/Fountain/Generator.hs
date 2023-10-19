@@ -49,7 +49,7 @@ gen g state (Seq s) = genSeq state s where
 -- We look at all the choices; each should start with a pre-condition
 -- determining whether we can select it; and we should narrow down our
 -- choices based on that. (Then pick randomly?  Or insist deterministic?)
-gen g state@(Generating _str store) (Alt choices) =
+gen g state@(Generating _str store) (Alt False choices) =
     case missingPreConditions choices of
         missing@(_:_) ->
             error ("No pre-condition present on these Alt choices: " ++ (show missing))
@@ -67,6 +67,8 @@ gen g state@(Generating _str store) (Alt choices) =
                 genAlt st [(_, e)] = gen g st e
                 genAlt _st other =
                     error ("Multiple pre-conditions are satisfied in Alt: " ++ (show other))
+
+gen _g _state (Alt True _choices) = error "Backtracking alternations during generation not yet implemented"
 
 gen _g _state (Loop _ []) = error "No postconditions defined for this Loop"
 gen g state (Loop l postconditions) = genLoop state l where

@@ -32,7 +32,7 @@ formals = do
 
 expr0 = do
     es <- sepBy (expr1) (keyword "|")
-    return $ Alt es
+    return $ Alt False es
 
 expr1 = do
     es <- many1 term

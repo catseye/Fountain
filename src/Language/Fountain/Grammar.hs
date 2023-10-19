@@ -14,7 +14,7 @@ import Language.Fountain.Constraint
 type NTName = String
 
 data Expr = Seq [Expr]
-          | Alt [Expr]
+          | Alt Bool [Expr]
           --
           -- In the case of a Loop, there is a post-processing step
           -- that copies any constraints following the Loop, into the Loop
@@ -28,7 +28,7 @@ data Expr = Seq [Expr]
 
 instance Show Expr where
     show (Seq exprs) = "(" ++ (intercalate " " (map (show) exprs)) ++ ")"
-    show (Alt exprs) = "(" ++ (intercalate " | " (map (show) exprs)) ++ ")"
+    show (Alt _ exprs) = "(" ++ (intercalate " | " (map (show) exprs)) ++ ")"
     show (Loop expr _) = "{" ++ (show expr) ++ "}"
     show (Terminal c) = "\"" ++ [c] ++ "\""
     show (NonTerminal name vars) = name ++ showVars vars

@@ -77,6 +77,7 @@ TODO
 
 ### Implementation
 
+*   Allow `--` for text-file to take the text to be parsed from stdin.
 *   Improved pretty-printing (coalesced terminals, no unnecessary parens, etc.)
 
 ### Documentation
@@ -101,7 +102,7 @@ History
 
 ### 0.4
 
-Language:
+#### Language
 
 During generation, every choice in an alternation must start with
 a constraint.  Exactly zero or one of those constraints must be
@@ -117,7 +118,7 @@ Greater than or equal and less than or equal constraints.
 
 "Both" combinator on constraints (which really needs reworking).
 
-Implementation:
+#### Implementation
 
 The `--start-symbol` option may now be passed to `fountain` to
 cause it to start parsing or generating at the named non-terminal.
