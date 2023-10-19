@@ -18,10 +18,11 @@ fountain = do
 prod = do
     nt <- capWord
     p <- option [] formals
+    bt <- option False (do { keyword "(*)"; return True })
     keyword "::="
     e <- expr0
     keyword ";"
-    return Production{ ntname=nt, params=p, backtrackable=False, constituents=e }
+    return Production{ ntname=nt, params=p, backtrackable=bt, constituents=e }
 
 formals = do
     keyword "<"

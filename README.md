@@ -72,6 +72,8 @@ TODO
 ### Semantics
 
 *   Params on top-level Goal mean those values must be provided from environment.
+*   Gate backtracking during parsing: don't allow backtracking if `(*)` missing.
+*   Gate backtracking during generation: allow backtracking if `(*)` present.
 
 ### Implementation
 
@@ -79,7 +81,6 @@ TODO
 
 ### Documentation
 
-*   Test cases for backtracking during parsing.
 *   Test cases for backtracking during generation.
 
 ### Aspirational
@@ -100,15 +101,23 @@ History
 
 ### 0.4
 
+Language:
+
 During generation, every choice in an alternation must start with
 a constraint.  Exactly zero or one of those constraints must be
 satisfied in a given state.  If none are, that is a failure, and
 backtracking will occur.  If more than one are, the process will
 abort with an error message.
 
+Productions may be marked with `(*)` to indicate that backtracking
+is permitted when processing alternations in that production.
+(However, this is not yet honoured during parsing and generation.)
+
 Greater than or equal and less than or equal constraints.
 
 "Both" combinator on constraints (which really needs reworking).
+
+Implementation:
 
 The `--start-symbol` option may now be passed to `fountain` to
 cause it to start parsing or generating at the named non-terminal.

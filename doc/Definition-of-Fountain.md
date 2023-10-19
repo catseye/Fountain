@@ -20,7 +20,7 @@ symbols enclosed in big angle quotes.)  Note, this paragraph should
 be rewritten for clarity at some point.
 
     Grammar ::= {Production}.
-    Production ::= NonTerminal [Formals] "::=" {Expr0}.
+    Production ::= NonTerminal [Formals] ["(*)"] "::=" {Expr0}.
     Expr0 ::= Expr1 {"|" Expr1}.
     Expr1 ::= Term {Term}.
     Term  ::= "{" Expr0 "}"
@@ -42,8 +42,7 @@ be rewritten for clarity at some point.
     Terminal ::= <<">> <<any except ">>+ <<">> | <<#>>IntLit.
     IntLit ::= [<<->>] <<digit>>+.
 
-The Tests
----------
+Tests follow.
 
     -> Functionality "Parse using Fountain Grammar" is implemented by
     -> shell command "bin/fountain parse %(test-body-file) %(test-input-file)"
@@ -57,7 +56,8 @@ The Tests
     -> Functionality "Generate using Fountain Grammar with input parameters" is implemented by
     -> shell command "bin/fountain generate %(test-body-file) %(test-input-text)"
 
-### Parsing
+Tests for Parsing
+-----------------
 
     -> Tests for functionality "Parse using Fountain Grammar"
 
@@ -247,7 +247,35 @@ When parsing, parameters can also be supplied from external sources.
     <=== aabbcc
     ???> Failure
 
-### Generation
+### Backtracking
+
+A production may be marked as allowing backtracking to
+occur within it, with the `(*)` symbol.
+
+Note that this is not fully implemented at the moment;
+when parsing, all productions allow backtracking, but
+when generating, none do.  This is on the TODO list.
+
+9 is divisible by 3.
+
+    Goal(*) ::= "a" { "bb" } "c" | "a" { "bbb" } "c";
+    <=== abbbbbbbbbc
+    ===> Success
+
+10 is divisible by 2.
+
+    Goal(*) ::= "a" { "bb" } "c" | "a" { "bbb" } "c";
+    <=== abbbbbbbbbbc
+    ===> Success
+
+11 is not divisible by 2 or by 3.
+
+    Goal(*) ::= "a" { "bb" } "c" | "a" { "bbb" } "c";
+    <=== abbbbbbbbbbbc
+    ???> Failure
+
+Tests for Generation
+--------------------
 
     -> Tests for functionality "Generate using Fountain Grammar"
 
