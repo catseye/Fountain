@@ -32,7 +32,8 @@ parse g state (Seq s) = parseSeq state s where
             st'     -> parseSeq st' rest
 
 -- Hello, Mrs Backtracking Alternation!
-parse g state (Alt True s) = parseAlt state s where
+parse g state (Alt True choices) = parseAlt state choices where
+    -- FIXME: select only the choices that could possibly apply
     parseAlt _st [] = Failure
     parseAlt st (e : rest) =
         case parse g st e of
@@ -40,10 +41,24 @@ parse g state (Alt True s) = parseAlt state s where
             st'     -> st'
 
 -- Hello, Mrs Non-Backtracking Alternation!
-parse g state (Alt False s) = parseAlt state s where
-    parseAlt _st [] = Failure
-    -- FIXME: this should do "pick an applicable one"
-    parseAlt st (e : _) = parse g st e
+parse g state@(Parsing _str store) (Alt False choices) =
+    case missingPreConditions choices of
+        missing@(_:_) ->
+            error ("No pre-condition present on these Alt choices: " ++ (show missing))
+        [] ->
+            let
+                preConditionedChoices = map (\x -> (getPreCondition x, x)) choices
+                isApplicableChoice (Just c, _) = canApplyConstraint c store
+                isApplicableChoice _ = False
+                applicableChoices = filter (isApplicableChoice) preConditionedChoices
+            in
+                parseAlt state applicableChoices where
+            where
+                parseAlt _st [] = Failure
+                -- we ignore the constraint here because it will be found and applied when we descend into e
+                parseAlt st [(_, e)] = parse g st e
+                parseAlt _st other =
+                    error ("Multiple pre-conditions are satisfied in Alt: " ++ (show other))
 
 parse g state (Loop l _) = parseLoop state l where
     parseLoop st e =
@@ -123,6 +138,12 @@ applyRelConstraint op v e st =
             if value `op` target then Just st else Nothing
         _ ->
             Nothing
+
+canApplyConstraint c store =
+    case applyConstraint c store of
+        Just _  -> True
+        Nothing -> False
+
 
 constructState :: String -> [String] -> ParseState
 constructState text initialParams = Parsing text $ constructStore initialParams

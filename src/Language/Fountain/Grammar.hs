@@ -3,10 +3,12 @@ module Language.Fountain.Grammar
     Expr(Seq, Alt, Loop, Terminal, NonTerminal, Constraint),
     Production(Production, ntname, params, backtrackable, constituents),
     Grammar(Grammar),
-    startSymbol, production, getFormals
+    startSymbol, production, getFormals,
+    getPreCondition, missingPreConditions
   ) where
 
 import Data.List (intercalate)
+import Data.Maybe (mapMaybe)
 
 import Language.Fountain.Constraint
 
@@ -57,6 +59,9 @@ instance Show Grammar where
     show (Grammar []) = ""
     show (Grammar (prod:rest)) = (show prod) ++ (show $ Grammar rest)
 
+--
+-- Accessors and utilities
+--
 
 startSymbol :: Grammar -> NTName
 startSymbol (Grammar (prod : _)) = ntname prod
@@ -71,3 +76,22 @@ getFormals :: NTName -> Grammar -> [Variable]
 getFormals nt (Grammar (prod : rest)) =
     if nt == (ntname prod) then params prod else getFormals nt (Grammar rest)
 getFormals nt (Grammar []) = error ("Production '" ++ nt ++ "' not found")
+
+--
+-- Alt choices need preconditions because, especially in generating,
+-- we need some guidance of which one to pick.
+--
+-- In parsing too though, it helps for being efficient and not
+-- backtracking unnecessarily.  (But we need a more refined notion
+-- in this case, because a terminal counts as a precondition.  TODO.)
+--
+getPreCondition :: Expr -> Maybe Constraint
+getPreCondition (Seq (x:_)) = getPreCondition x
+getPreCondition (Constraint c) = Just c
+getPreCondition _ = Nothing
+
+missingPreConditions choices =
+    mapMaybe (\x -> case getPreCondition x of
+        Just _ -> Nothing
+        Nothing -> Just x
+      ) choices
