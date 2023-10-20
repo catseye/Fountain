@@ -1,18 +1,21 @@
-module Language.Fountain.Preprocessor where
+module Language.Fountain.Preprocessor (
+    preprocessGrammarForGeneration, preprocessGrammarForParsing
+) where
 
 import Language.Fountain.Grammar
 import Language.Fountain.Constraint
 
 
-preprocessGrammar :: Grammar -> Grammar
-preprocessGrammar (Grammar productions) =
-    let
-        productions' = map (preprocessProduction) productions
-    in
-        Grammar productions'
+preprocessGrammarForGeneration :: Grammar -> Grammar
+preprocessGrammarForGeneration (Grammar productions) = Grammar $ map (preprocessProduction) productions where
+    preprocessProduction p@Production{ constituents=c } = p { constituents=preprocessExpr c }
+    preprocessExpr = eliminateSingleAlts . coalesceConstraints . decorateLoops
 
-preprocessProduction p@Production{ constituents=c } = p { constituents=preprocessExpr c }
-preprocessExpr = eliminateSingleAlts . coalesceConstraints . decorateLoops
+
+preprocessGrammarForParsing :: Grammar -> Grammar
+preprocessGrammarForParsing (Grammar productions) = Grammar $ map (preprocessProduction) productions where
+    preprocessProduction p@Production{ constituents=c } = p { constituents=preprocessExpr c }
+    preprocessExpr = eliminateSingleAlts
 
 
 --

@@ -43,12 +43,12 @@ main = do
             output $ Grammar.depictGrammar grammar
         ["preprocess", grammarFileName] -> do
             grammar <- loadSource grammarFileName
-            let grammar' = Preprocessor.preprocessGrammar grammar
+            let grammar' = Preprocessor.preprocessGrammarForGeneration grammar
             -- TODO: add flag to show internal format
             output $ Grammar.depictGrammar grammar'
         ("parse":grammarFileName:textFileName:initialParams) -> do
             grammar <- loadSource grammarFileName
-            let grammar' = Preprocessor.preprocessGrammar grammar
+            let grammar' = Preprocessor.preprocessGrammarForParsing grammar
             text <- loadText textFileName
             let start = getStartSymbol grammar' flags
             let initialState = Parser.constructState text initialParams
@@ -57,7 +57,7 @@ main = do
             exitWith $ either (\_msg -> ExitFailure 1) (\_remaining -> ExitSuccess) $ Parser.obtainResult finalState
         ("generate":grammarFileName:initialParams) -> do
             grammar <- loadSource grammarFileName
-            let grammar' = Preprocessor.preprocessGrammar grammar
+            let grammar' = Preprocessor.preprocessGrammarForGeneration grammar
             let start = getStartSymbol grammar' flags
             let initialState = Generator.constructState initialParams
             let finalState = Generator.generateFrom grammar' start initialState
