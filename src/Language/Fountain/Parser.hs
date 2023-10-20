@@ -41,10 +41,10 @@ parse g state (Alt True choices) = parseAlt state choices where
             st'     -> st'
 
 -- Hello, Mrs Non-Backtracking Alternation!
-parse g state@(Parsing _str store) expr@(Alt False choices) =
+parse g state@(Parsing _str store) (Alt False choices) =
     case missingPreConditions choices of
         missing@(_:_) ->
-            error ("No pre-condition present on these Alt choices: " ++ (show missing) ++ " of this: " ++ (show expr))
+            error ("No pre-condition present on these Alt choices: " ++ (depictExprs missing))
         [] ->
             let
                 preConditionedChoices = map (\x -> (getPreCondition x, x)) choices
@@ -58,7 +58,7 @@ parse g state@(Parsing _str store) expr@(Alt False choices) =
                 -- we ignore the constraint here because it will be found and applied when we descend into e
                 parseAlt st [(_, e)] = parse g st e
                 parseAlt _st other =
-                    error ("Multiple pre-conditions are satisfied in Alt: " ++ (show other))
+                    error ("Multiple pre-conditions are satisfied in Alt: " ++ (depictExprs (map (snd) other)))
 
 parse g state (Loop l _) = parseLoop state l where
     parseLoop st e =
@@ -121,16 +121,21 @@ applyConstraint (Dec v e) st =
             Just $ update (\i -> Just (i - delta)) v st
         Nothing ->
             Nothing
-applyConstraint (GreaterThan v e) st = applyRelConstraint (>) v e st
-applyConstraint (GreaterThanOrEqual v e) st = applyRelConstraint (>=) v e st
-applyConstraint (LessThan v e) st = applyRelConstraint (<) v e st
-applyConstraint (LessThanOrEqual v e) st = applyRelConstraint (<=) v e st
 applyConstraint (Both c1 c2) st =
     case applyConstraint c1 st of
         Just st' ->
             applyConstraint c2 st'
         Nothing ->
             Nothing
+applyConstraint (Lookahead _s) _st =
+    -- FIXME we need access to state, not just store!
+    -- state@(Parsing (c:cs) _store)
+    -- if s == [c] then Just state else Nothing
+    Nothing
+applyConstraint (GreaterThan v e) st = applyRelConstraint (>) v e st
+applyConstraint (GreaterThanOrEqual v e) st = applyRelConstraint (>=) v e st
+applyConstraint (LessThan v e) st = applyRelConstraint (<) v e st
+applyConstraint (LessThanOrEqual v e) st = applyRelConstraint (<=) v e st
 
 applyRelConstraint op v e st =
     case (fetch v st, ceval e st) of

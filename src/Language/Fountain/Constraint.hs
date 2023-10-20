@@ -18,6 +18,7 @@ data Constraint = UnifyConst Variable Integer
                 | LessThan Variable CExpr
                 | LessThanOrEqual Variable CExpr
                 | Both Constraint Constraint
+                | Lookahead String
     deriving (Show, Ord, Eq)
 
 depictVar (Var s) = s
@@ -34,3 +35,4 @@ depictConstraint (GreaterThanOrEqual v e) = (depictVar v) ++ " >= " ++ (depictCE
 depictConstraint (LessThan v e) = (depictVar v) ++ " < " ++ (depictCExpr e)
 depictConstraint (LessThanOrEqual v e) = (depictVar v) ++ " <= " ++ (depictCExpr e)
 depictConstraint (Both c1 c2) = "&& " ++ (depictConstraint c1) ++ ", " ++ (depictConstraint c2)
+depictConstraint (Lookahead s) = "token is " ++ (show s)

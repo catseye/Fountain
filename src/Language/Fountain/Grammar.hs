@@ -3,7 +3,7 @@ module Language.Fountain.Grammar
     Expr(Seq, Alt, Loop, Terminal, NonTerminal, Constraint),
     Production(Production, ntname, params, backtrackable, constituents),
     Grammar(Grammar),
-    depictExpr, depictProduction, depictGrammar, depictVars,
+    depictExpr, depictExprs, depictProduction, depictGrammar, depictVars,
     startSymbol, production, getFormals,
     getPreCondition, missingPreConditions
   ) where
@@ -51,6 +51,8 @@ depictExpr (Loop expr _) = "{" ++ (depictExpr expr) ++ "}"
 depictExpr (Terminal c) = "\"" ++ [c] ++ "\""
 depictExpr (NonTerminal name vars) = name ++ depictVars vars
 depictExpr (Constraint c) = "<. " ++ (depictConstraint c) ++ " .>"
+
+depictExprs exprs = (intercalate ", " (map (depictExpr) exprs))
 
 depictVars [] = ""
 depictVars vars = "<" ++ (intercalate ", " (map (depictVar) vars)) ++ ">"
