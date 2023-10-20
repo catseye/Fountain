@@ -1,6 +1,7 @@
 module Language.Fountain.Generator (constructState, generateFrom, obtainResult) where
 
 import Data.Maybe (mapMaybe)
+--import Debug.Trace
 
 import Language.Fountain.Store
 import Language.Fountain.Constraint
@@ -15,6 +16,8 @@ data GenState = Generating String Store
 --
 -- Utils
 --
+
+trace _ x = x
 
 genTerminal c (Generating cs a) = (Generating (c:cs) a)
 genTerminal _c Failure = Failure
@@ -49,10 +52,20 @@ gen g state (Seq s) = genSeq state s where
             Failure -> Failure
             st'     -> genSeq st' rest
 
--- We look at all the choices; each should start with a pre-condition
--- determining whether we can select it; and we should narrow down our
--- choices based on that.
+-- Hello, Mrs Backtracking Alternation!
+gen g state (Alt True choices) = genAlt state choices where
+    -- Note, we try all the possibilities here, regardless of their preconditions.
+    genAlt _st [] = Failure
+    genAlt st (e : rest) =
+        case gen g st e of
+            Failure -> genAlt st rest
+            st'     -> st'
+
+-- Hello, Mrs Non-Backtracking Alternation!
 gen g state@(Generating _str store) (Alt False choices) =
+    -- We look at all the choices; each should start with a pre-condition
+    -- determining whether we can select it; and we should narrow down our
+    -- choices based on that.
     case missingPreConditions choices of
         missing@(_:_) ->
             error ("No pre-condition present on these Alt choices: " ++ (depictExprs missing))
@@ -71,7 +84,6 @@ gen g state@(Generating _str store) (Alt False choices) =
                 genAlt _st other =
                     error ("Multiple pre-conditions are satisfied in Alt: " ++ (depictExprs (map (snd) other)))
 
-gen _g _state (Alt True _choices) = error "Backtracking alternations during generation not yet implemented"
 
 gen _g _state (Loop _ []) = error "No postconditions defined for this Loop"
 gen g state (Loop l postconditions) = genLoop state l where
@@ -86,7 +98,7 @@ gen g state (Loop l postconditions) = genLoop state l where
                     Nothing      -> genLoop st' e
     checkLimit [] st = Just st
     checkLimit (c:cs) st =
-        case applyConstraint c st of
+        trace ("Wend? " ++ (show c) ++ " in " ++ (show st)) $ case applyConstraint c st of
             Nothing -> Nothing
             Just st' -> checkLimit cs st'
 
@@ -110,9 +122,11 @@ gen g (Generating text store) (NonTerminal nt actuals) =
 gen _g (Generating text store) (Constraint cstr) =
     case applyConstraint cstr store of
         Just store' ->
-            Generating text store'
+            trace ("OK " ++ (show cstr) ++ " => " ++ (show store')) Generating text store'
+            --Generating text store'
         Nothing ->
-            Failure
+            trace ("No " ++ (show cstr) ++ " !: " ++ (show store)) Failure
+            --Failure
 
 --
 -- Usage interface

@@ -252,10 +252,6 @@ When parsing, parameters can also be supplied from external sources.
 A production may be marked as allowing backtracking to
 occur within it, with the `(*)` symbol.
 
-Note that this is not fully implemented at the moment;
-when parsing, all productions allow backtracking, but
-when generating, none do.  This is on the TODO list.
-
 9 is divisible by 3.
 
     Goal(*) ::= "a" { "bb" } "c" | "a" { "bbb" } "c";
@@ -273,6 +269,13 @@ when generating, none do.  This is on the TODO list.
     Goal(*) ::= "a" { "bb" } "c" | "a" { "bbb" } "c";
     <=== abbbbbbbbbbbc
     ???> Failure
+
+Note how these don't work at all with backtracking disabled,
+because two of the alternatives start with the same terminal.
+
+    Goal ::= "a" { "bb" } "c" | "a" { "bbb" } "c";
+    <=== abbbbbbbbbc
+    ???> Multiple pre-conditions
 
 Tests for Generation
 --------------------
@@ -403,3 +406,36 @@ Greater-than-or-equal and less-than-or-equal constraints by variable.
     Sp<x> ::= <. n = 0 .> { " " <. n += 1 .> } <. n > 0 .> <. n = x .>;
     <=== a=3
     ===> Hi   there   world!
+
+### Backtracking
+
+A production may be marked as allowing backtracking to
+occur within it, with the `(*)` symbol.
+
+> 5 = 5.
+> 
+>     Goal ::= <. a = 0 .> { Item<a> } <. a = n .>;
+>     Item<a>(*) ::= "####" <. a += 4 .>
+>                  | "ooooo" <. a += 5 .>
+>                  | "xxxxxxx" <. a += 7 .>;
+>     <=== n=5
+>     ===> ooooo
+> 
+> 9 = 4 + 5.
+> 
+>     Goal ::= <. a = 0 .> { Item<a> } <. a = n .>;
+>     Item<a>(*) ::= "####" <. a += 4 .>
+>                  | "ooooo" <. a += 5 .>
+>                  | "xxxxxxx" <. a += 7 .>;
+>     <=== n=9
+>     ===> ####ooooo
+
+Note how these don't work at all with backtracking disabled,
+because two of the alternatives start with the same terminal.
+
+    Goal ::= <. a = 0 .> { Item<a> } <. a = n .>;
+    Item<a>    ::= "####" <. a += 4 .>
+                 | "ooooo" <. a += 5 .>
+                 | "xxxxxxx" <. a += 7 .>;
+    <=== n=9
+    ???> No pre-condition

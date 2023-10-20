@@ -71,18 +71,14 @@ TODO
 
 ### Semantics
 
+*   Is it a mess to allow constraints that modify the store in places where
+    constraints are checked (pre-conditions of choices and post-conditions of loops)?
 *   Params on top-level Goal mean those values must be provided from environment.
-*   Gate backtracking during parsing: don't allow backtracking if `(*)` missing.
-*   Gate backtracking during generation: allow backtracking if `(*)` present.
 
 ### Implementation
 
 *   Allow `--` for text-file to take the text to be parsed from stdin.
 *   Improved pretty-printing (coalesced terminals, no unnecessary parens, etc.)
-
-### Documentation
-
-*   Test cases for backtracking during generation.
 
 ### Aspirational
 
@@ -104,15 +100,23 @@ History
 
 #### Language
 
-During generation, every choice in an alternation must start with
-a constraint.  Exactly zero or one of those constraints must be
-satisfied in a given state.  If none are, that is a failure, and
-backtracking will occur.  If more than one are, the process will
-abort with an error message.
+Fountain now distinguishes between productions that may backtrack and
+ones that may not, in both parsing and generation.
 
-Productions may be marked with `(*)` to indicate that backtracking
-is permitted when processing alternations in that production.
-(However, this is not yet honoured during parsing and generation.)
+By default, backtracking is not permitted.  Productions may be marked
+with `(*)` to indicate that backtracking is permitted when processing
+alternations in that production.
+
+When backtracking is not permitted, every choice in an alternation
+must start with a constraint.  Exactly zero or one of those constraints
+must be satisfied in a given state.  If none are, that is a failure (and
+if this failure happens in an enclosing context where backtracking *is*
+permitted, then backtracking will occur in that context).  If more than
+one are, the process will abort with an error message.
+
+Note, backtracking generation currently has problems.
+
+Also:
 
 Greater than or equal and less than or equal constraints.
 
