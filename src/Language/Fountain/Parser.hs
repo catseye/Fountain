@@ -41,14 +41,14 @@ parse g state (Alt True choices) = parseAlt state choices where
             st'     -> st'
 
 -- Hello, Mrs Non-Backtracking Alternation!
-parse g state@(Parsing _str store) (Alt False choices) =
+parse g state (Alt False choices) =
     case missingPreConditions choices of
         missing@(_:_) ->
             error ("No pre-condition present on these Alt choices: " ++ (depictExprs missing))
         [] ->
             let
                 preConditionedChoices = map (\x -> (getPreCondition x, x)) choices
-                isApplicableChoice (Just c, _) = canApplyConstraint c store
+                isApplicableChoice (Just c, _) = canApplyConstraint c state
                 isApplicableChoice _ = False
                 applicableChoices = filter (isApplicableChoice) preConditionedChoices
             in
@@ -84,22 +84,24 @@ parse g (Parsing text store) (NonTerminal nt actuals) =
             Failure ->
                 Failure
 
-parse _g (Parsing text store) (Constraint cstr) =
-    case applyConstraint cstr store of
+parse _g state@(Parsing s _) (Constraint cstr) =
+    case applyConstraint cstr state of
         Just store' ->
-            Parsing text store'
+            Parsing s store'
         Nothing ->
             Failure
 
 
-applyConstraint :: Constraint -> Store -> Maybe Store
-applyConstraint (UnifyConst v i) st =
+-- FIXME: this is goofy.  It takes the entire state but returns only the store (maybe)
+applyConstraint :: Constraint -> ParseState -> Maybe Store
+applyConstraint _ Failure = Nothing
+applyConstraint (UnifyConst v i) (Parsing _ st) =
     case fetch v st of
         Just value ->
             if value == i then Just st else Nothing
         Nothing ->
             Just $ insert v i st
-applyConstraint (UnifyVar v w) st =
+applyConstraint (UnifyVar v w) (Parsing _ st) =
     case (fetch v st, fetch w st) of
         (Just vValue, Just wValue) ->
             if vValue == wValue then Just st else Nothing
@@ -109,43 +111,46 @@ applyConstraint (UnifyVar v w) st =
             Just $ insert v wValue st
         (Nothing, Nothing) ->
             Just st
-applyConstraint (Inc v e) st =
+applyConstraint (Inc v e) (Parsing _ st) =
     case ceval e st of
         Just delta ->
             Just $ update (\i -> Just (i + delta)) v st
         Nothing ->
             Nothing
-applyConstraint (Dec v e) st =
+applyConstraint (Dec v e) (Parsing _ st) =
     case ceval e st of
         Just delta ->
             Just $ update (\i -> Just (i - delta)) v st
         Nothing ->
             Nothing
-applyConstraint (Both c1 c2) st =
-    case applyConstraint c1 st of
+applyConstraint (Both c1 c2) state@(Parsing s _st) =
+    case applyConstraint c1 state of
         Just st' ->
-            applyConstraint c2 st'
+            applyConstraint c2 (Parsing s st')
         Nothing ->
             Nothing
-applyConstraint (Lookahead _s) _st =
-    -- FIXME we need access to state, not just store!
-    -- state@(Parsing (c:cs) _store)
-    -- if s == [c] then Just state else Nothing
+applyConstraint (Lookahead s) (Parsing (c:_) st) =
+    if s == [c] then Just st else Nothing
+applyConstraint (Lookahead _) _ =
     Nothing
-applyConstraint (GreaterThan v e) st = applyRelConstraint (>) v e st
-applyConstraint (GreaterThanOrEqual v e) st = applyRelConstraint (>=) v e st
-applyConstraint (LessThan v e) st = applyRelConstraint (<) v e st
-applyConstraint (LessThanOrEqual v e) st = applyRelConstraint (<=) v e st
+applyConstraint (GreaterThan v e) state = applyRelConstraint (>) v e state
+applyConstraint (GreaterThanOrEqual v e) state = applyRelConstraint (>=) v e state
+applyConstraint (LessThan v e) state = applyRelConstraint (<) v e state
+applyConstraint (LessThanOrEqual v e) state = applyRelConstraint (<=) v e state
 
-applyRelConstraint op v e st =
+applyRelConstraint _ _ _ Failure = Nothing
+applyRelConstraint op v e (Parsing _ st) =
     case (fetch v st, ceval e st) of
         (Just value, Just target) ->
             if value `op` target then Just st else Nothing
         _ ->
             Nothing
 
-canApplyConstraint c store =
-    case applyConstraint c store of
+-- can f = case f of Just _ -> True; Nothing -> False
+-- canApplyConstraint c state = can (applyConstraint c state)
+
+canApplyConstraint c state =
+    case applyConstraint c state of
         Just _  -> True
         Nothing -> False
 
