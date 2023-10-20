@@ -5,7 +5,7 @@ import Data.Maybe (mapMaybe)
 
 import Language.Fountain.Store
 import Language.Fountain.Constraint
-import Language.Fountain.ApplyConstraint
+import qualified Language.Fountain.ConstraintStore as CS
 import Language.Fountain.Grammar
 
 
@@ -16,6 +16,9 @@ data GenState = Generating String Store
 --
 -- Utils
 --
+
+can (Just _) = True
+can Nothing  = False
 
 trace _ x = x
 
@@ -72,7 +75,7 @@ gen g state@(Generating _str store) (Alt False choices) =
         [] ->
             let
                 preConditionedChoices = map (\x -> (getPreCondition x, x)) choices
-                isApplicableChoice (Just c, _) = can $ applyConstraint c store
+                isApplicableChoice (Just c, _) = can $ CS.applyConstraint c store
                 isApplicableChoice _ = False
                 applicableChoices = filter (isApplicableChoice) preConditionedChoices
             in
@@ -98,7 +101,7 @@ gen g state (Loop l postconditions) = genLoop state l where
                     Nothing      -> genLoop st' e
     checkLimit [] st = Just st
     checkLimit (c:cs) st =
-        trace ("Wend? " ++ (show c) ++ " in " ++ (show st)) $ case applyConstraint c st of
+        trace ("Wend? " ++ (show c) ++ " in " ++ (show st)) $ case CS.applyConstraint c st of
             Nothing -> Nothing
             Just st' -> checkLimit cs st'
 
@@ -120,7 +123,7 @@ gen g (Generating text store) (NonTerminal nt actuals) =
                 Failure
 
 gen _g (Generating text store) (Constraint cstr) =
-    case applyConstraint cstr store of
+    case CS.applyConstraint cstr store of
         Just store' ->
             trace ("OK " ++ (show cstr) ++ " => " ++ (show store')) Generating text store'
             --Generating text store'
@@ -133,7 +136,7 @@ gen _g (Generating text store) (Constraint cstr) =
 --
 
 constructState :: [String] -> GenState
-constructState initialParams = Generating "" (constructStore initialParams)
+constructState initialParams = Generating "" $ CS.constructStore initialParams
 
 generateFrom :: Grammar -> String -> GenState ->  GenState
 generateFrom g start state = revgen $ gen g state (production start g)

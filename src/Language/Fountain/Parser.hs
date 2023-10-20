@@ -4,7 +4,7 @@ import Data.Maybe (mapMaybe)
 
 import Language.Fountain.Store
 import Language.Fountain.Constraint
-import qualified Language.Fountain.ApplyConstraint as ApplyConstraint
+import qualified Language.Fountain.ConstraintStore as CS
 import Language.Fountain.Grammar
 
 
@@ -123,7 +123,7 @@ applyConstraint (Lookahead s) state@(Parsing (c:_) _) =
     if s == [c] then state else Failure
 applyConstraint (Lookahead _) _ = Failure
 applyConstraint other (Parsing s store) =
-    case ApplyConstraint.applyConstraint other store of
+    case CS.applyConstraint other store of
         Just store' ->
             Parsing s store'
         Nothing ->
@@ -134,7 +134,7 @@ applyConstraint other (Parsing s store) =
 --
 
 constructState :: String -> [String] -> ParseState
-constructState text initialParams = Parsing text $ constructStore initialParams
+constructState text initialParams = Parsing text $ CS.constructStore initialParams
 
 parseFrom :: Grammar -> String -> ParseState -> ParseState
 parseFrom g start st = parse g st (production start  g)

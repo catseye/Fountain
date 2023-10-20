@@ -1,11 +1,21 @@
-module Language.Fountain.ApplyConstraint where
+module Language.Fountain.ConstraintStore where
 
 import Language.Fountain.Store
 import Language.Fountain.Constraint
+import Language.Fountain.Loader (parseConstConstraint)
 
 
-can (Just _) = True
-can Nothing  = False
+constructStore :: [String] -> Store
+constructStore [] = empty
+constructStore (constConstrainer:rest) =
+    let
+        (k, v) = parseConstConstraint constConstrainer
+    in
+        insert k v $ constructStore rest
+
+ceval :: CExpr -> Store -> Maybe Integer
+ceval (CInt i) _ = Just i
+ceval (CVar v) st = fetch v st
 
 applyConstraint :: Constraint -> Store -> Maybe Store
 applyConstraint (UnifyConst v i) st =
