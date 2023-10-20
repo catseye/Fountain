@@ -18,8 +18,6 @@ data GenState = Generating String Store
 can (Just _) = True
 can Nothing  = False
 
-trace _ x = x
-
 genTerminal c (Generating cs a) = (Generating (c:cs) a)
 genTerminal _c Failure = Failure
 
@@ -94,12 +92,12 @@ gen g state (Loop l postconditions) = genLoop state l where
             st'@(Generating str store)  ->
                 case checkLimit postconditions store of
                     -- All postconditions met, terminate the loop.
-                    Just store'  -> Generating str store'
+                    Just store'  -> Generating str (trace ("Done " ++ (show postconditions)) store')
                     -- Not all postconditions met -- go 'round again
                     Nothing      -> genLoop st' e
     checkLimit [] st = Just st
     checkLimit (c:cs) st =
-        trace ("Wend? " ++ (show c) ++ " in " ++ (show st)) $ case applyConstraint c st of
+        case applyConstraint c st of
             Nothing -> Nothing
             Just st' -> checkLimit cs st'
 
@@ -123,11 +121,9 @@ gen g (Generating text store) (NonTerminal nt actuals) =
 gen _g (Generating text store) (Constraint cstr) =
     case applyConstraint cstr store of
         Just store' ->
-            trace ("OK " ++ (show cstr) ++ " => " ++ (show store')) Generating text store'
-            --Generating text store'
+            Generating text (trace ("OK " ++ depictConstraint cstr) store')
         Nothing ->
-            trace ("No " ++ (show cstr) ++ " !: " ++ (show store)) Failure
-            --Failure
+            Failure
 
 --
 -- Usage interface

@@ -1,10 +1,11 @@
 module Language.Fountain.Store (
     Store, empty, fetch, insert, update, updateStore,
-    constructStore, ceval, applyConstraint
+    constructStore, ceval, applyConstraint,
+    trace
 ) where
 
 --
--- Variable store.  This is not very generic; it contains values of variables
+-- Variable store.  This is not very general; it contains values of variables
 -- (and some other stuff) and knows how to apply constraints to the store.
 --
 
@@ -14,12 +15,24 @@ import Language.Fountain.Constraint
 import Language.Fountain.Loader (parseConstConstraint)
 
 
-type Store = Map.Map Variable Integer
+data Store = Store {
+    store :: Map.Map Variable Integer,
+    events :: [String]
+} deriving (Show, Ord, Eq)
 
-empty = Map.empty
-fetch = Map.lookup
-insert = Map.insert
-update f k m = Map.update f k m
+empty = Store{ store=Map.empty, events=[] }
+fetch k s = Map.lookup k (store s)
+insert k v s = s{ store=Map.insert k v $ store s }
+update f k s = s{ store=Map.update f k $ store s }
+
+
+constructStore :: [String] -> Store
+constructStore [] = empty
+constructStore (constConstrainer:rest) =
+    let
+        (k, v) = parseConstConstraint constConstrainer
+    in
+        insert k v $ constructStore rest
 
 updateStore :: [Variable] -> [Variable] -> Store -> Store -> Store
 updateStore [] [] _sourceStore destStore = destStore
@@ -33,15 +46,6 @@ updateStore (sourceKey:sourceKeys) (destKey:destKeys) sourceStore destStore =
             Nothing -> destStore
     in
         updateStore sourceKeys destKeys sourceStore destStore'
-
-
-constructStore :: [String] -> Store
-constructStore [] = empty
-constructStore (constConstrainer:rest) =
-    let
-        (k, v) = parseConstConstraint constConstrainer
-    in
-        insert k v $ constructStore rest
 
 ceval :: CExpr -> Store -> Maybe Integer
 ceval (CInt i) _ = Just i
@@ -94,3 +98,5 @@ applyRelConstraint op v e st =
             if value `op` target then Just st else Nothing
         _ ->
             Nothing
+
+trace str s = s{ events=(str:(events s)) }
