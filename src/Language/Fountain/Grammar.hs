@@ -5,11 +5,9 @@ module Language.Fountain.Grammar
     Grammar(Grammar),
     depictExpr, depictExprs, depictProduction, depictGrammar, depictVars,
     startSymbol, production, getFormals,
-    getPreCondition, missingPreConditions
   ) where
 
 import Data.List (intercalate)
-import Data.Maybe (mapMaybe)
 
 import Language.Fountain.Constraint
 
@@ -82,21 +80,3 @@ getFormals nt (Grammar (prod : rest)) =
     if nt == (ntname prod) then params prod else getFormals nt (Grammar rest)
 getFormals nt (Grammar []) = error ("Production '" ++ nt ++ "' not found")
 
---
--- Alt choices need preconditions because, especially in generating,
--- we need some guidance of which one to pick.
---
--- In parsing too though, it helps for being efficient and not
--- backtracking unnecessarily.  (But we need a more refined notion
--- in this case, because a terminal counts as a precondition.  TODO.)
---
-getPreCondition :: Expr -> Maybe Constraint
-getPreCondition (Seq (x:_)) = getPreCondition x
-getPreCondition (Constraint c) = Just c
-getPreCondition _ = Nothing
-
-missingPreConditions choices =
-    mapMaybe (\x -> case getPreCondition x of
-        Just _ -> Nothing
-        Nothing -> Just x
-      ) choices

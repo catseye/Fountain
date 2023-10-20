@@ -1,5 +1,7 @@
 module Language.Fountain.Parser (constructState, parseFrom, obtainResult) where
 
+import Data.Maybe (mapMaybe)
+
 import Language.Fountain.Grammar
 import Language.Fountain.Constraint
 import Language.Fountain.Store
@@ -9,6 +11,9 @@ data ParseState = Parsing String Store
                 | Failure
     deriving (Show, Ord, Eq)
 
+--
+-- Utils
+--
 
 expectTerminal :: Char -> ParseState -> ParseState
 expectTerminal tc (Parsing (c:cs) a) = if c == tc then (Parsing cs a) else Failure
@@ -19,6 +24,27 @@ obtainResult :: ParseState -> Either String String
 obtainResult (Parsing s _) = Right s
 obtainResult Failure = Left "failure"
 
+--
+-- Alt choices need preconditions during parsing because it helps
+-- efficiency by preventing unnecessary backtracking.  But note that
+-- we need a more refined notion in parsing than in generation,
+-- because a terminal counts as a precondition.
+--
+getPreCondition :: Expr -> Maybe Constraint
+getPreCondition (Seq (x:_)) = getPreCondition x
+getPreCondition (Constraint c) = Just c
+getPreCondition (Terminal c) = Just $ Lookahead s where s = [c]
+getPreCondition _ = Nothing
+
+missingPreConditions choices =
+    mapMaybe (\x -> case getPreCondition x of
+        Just _ -> Nothing
+        Nothing -> Just x
+      ) choices
+
+--
+-- Parser
+--
 
 parse :: Grammar -> ParseState -> Expr -> ParseState
 

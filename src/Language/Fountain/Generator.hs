@@ -1,5 +1,7 @@
 module Language.Fountain.Generator (constructState, generateFrom, obtainResult) where
 
+import Data.Maybe (mapMaybe)
+
 import Language.Fountain.Grammar
 import Language.Fountain.Constraint
 import Language.Fountain.Store
@@ -9,6 +11,9 @@ data GenState = Generating String Store
               | Failure
     deriving (Show, Ord, Eq)
 
+--
+-- Utils
+--
 
 genTerminal c (Generating cs a) = (Generating (c:cs) a)
 genTerminal _c Failure = Failure
@@ -17,6 +22,24 @@ obtainResult :: GenState -> Either String String
 obtainResult (Generating s _) = Right s
 obtainResult Failure = Left "failure"
 
+--
+-- Alt choices need preconditions during generation because
+-- we need some guidance of which one to pick.
+--
+getPreCondition :: Expr -> Maybe Constraint
+getPreCondition (Seq (x:_)) = getPreCondition x
+getPreCondition (Constraint c) = Just c
+getPreCondition _ = Nothing
+
+missingPreConditions choices =
+    mapMaybe (\x -> case getPreCondition x of
+        Just _ -> Nothing
+        Nothing -> Just x
+      ) choices
+
+--
+-- Generator
+--
 
 gen :: Grammar -> GenState -> Expr -> GenState
 
@@ -150,6 +173,10 @@ canApplyConstraint c store =
         Just _  -> True
         Nothing -> False
 
+
+--
+-- Usage interface
+--
 
 constructState :: [String] -> GenState
 constructState initialParams = Generating "" (constructStore initialParams)
