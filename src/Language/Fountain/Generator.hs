@@ -88,11 +88,14 @@ gen _g _state (Loop _ []) = error "No postconditions defined for this Loop"
 gen g state (Loop l postconditions) = genLoop state l where
     genLoop st e =
         case gen g st e of
-            Failure -> st
+            -- If the loop body fails, we should fail too.
+            Failure -> Failure
             st'@(Generating str store)  ->
                 case checkLimit postconditions store of
                     -- All postconditions met, terminate the loop.
-                    Just store'  -> Generating str (trace ("Done " ++ (show postconditions)) store')
+                    -- (You know, we don't even need to use store' here, because
+                    -- the constraints in it will follow directly and we'll apply them)
+                    Just _       -> Generating str (trace ("Done " ++ (show postconditions)) store)
                     -- Not all postconditions met -- go 'round again
                     Nothing      -> genLoop st' e
     checkLimit [] st = Just st

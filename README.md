@@ -114,7 +114,8 @@ if this failure happens in an enclosing context where backtracking *is*
 permitted, then backtracking will occur in that context).  If more than
 one are, the process will abort with an error message.
 
-Note, backtracking generation currently has problems.
+Note, backtracking currently has problems.  The preprocessor needs to
+do more work in order for it to work properly.
 
 Also:
 
