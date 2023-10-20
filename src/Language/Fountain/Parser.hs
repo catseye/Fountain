@@ -4,7 +4,6 @@ import Data.Maybe (mapMaybe)
 
 import Language.Fountain.Store
 import Language.Fountain.Constraint
-import qualified Language.Fountain.ConstraintStore as CS
 import Language.Fountain.Grammar
 
 
@@ -42,7 +41,7 @@ missingPreConditions choices =
 getApplicableChoices state choices =
     let
         preConditionedChoices = map (\x -> (getPreCondition x, x)) choices
-        isApplicableChoice (Just c, _) = case applyConstraint c state of
+        isApplicableChoice (Just c, _) = case applyParseConstraint c state of
             Failure -> False
             _ -> True
         isApplicableChoice _ = False
@@ -114,16 +113,16 @@ parse g (Parsing text store) (NonTerminal nt actuals) =
             Failure ->
                 Failure
 
-parse _g state (Constraint cstr) = applyConstraint cstr state
+parse _g state (Constraint cstr) = applyParseConstraint cstr state
 
 
-applyConstraint :: Constraint -> ParseState -> ParseState
-applyConstraint _ Failure = Failure
-applyConstraint (Lookahead s) state@(Parsing (c:_) _) =
+applyParseConstraint :: Constraint -> ParseState -> ParseState
+applyParseConstraint _ Failure = Failure
+applyParseConstraint (Lookahead s) state@(Parsing (c:_) _) =
     if s == [c] then state else Failure
-applyConstraint (Lookahead _) _ = Failure
-applyConstraint other (Parsing s store) =
-    case CS.applyConstraint other store of
+applyParseConstraint (Lookahead _) _ = Failure
+applyParseConstraint other (Parsing s store) =
+    case applyConstraint other store of
         Just store' ->
             Parsing s store'
         Nothing ->
@@ -134,7 +133,7 @@ applyConstraint other (Parsing s store) =
 --
 
 constructState :: String -> [String] -> ParseState
-constructState text initialParams = Parsing text $ CS.constructStore initialParams
+constructState text initialParams = Parsing text $ constructStore initialParams
 
 parseFrom :: Grammar -> String -> ParseState -> ParseState
 parseFrom g start st = parse g st (production start  g)
