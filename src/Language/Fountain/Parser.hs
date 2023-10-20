@@ -15,14 +15,13 @@ data ParseState = Parsing String Store
 -- Utils
 --
 
+can (Just _) = True
+can Nothing  = False
+
 expectTerminal :: Char -> ParseState -> ParseState
 expectTerminal tc (Parsing (c:cs) a) = if c == tc then (Parsing cs a) else Failure
 expectTerminal _tc (Parsing [] _a) = Failure
 expectTerminal _tc Failure = Failure
-
-obtainResult :: ParseState -> Either String String
-obtainResult (Parsing s _) = Right s
-obtainResult Failure = Left "failure"
 
 --
 -- Alt choices need preconditions during parsing because it helps
@@ -74,7 +73,7 @@ parse g state (Alt False choices) =
         [] ->
             let
                 preConditionedChoices = map (\x -> (getPreCondition x, x)) choices
-                isApplicableChoice (Just c, _) = canApplyConstraint c state
+                isApplicableChoice (Just c, _) = can $ applyConstraint c state
                 isApplicableChoice _ = False
                 applicableChoices = filter (isApplicableChoice) preConditionedChoices
             in
@@ -175,17 +174,16 @@ applyRelConstraint op v e (Parsing _ st) =
         _ ->
             Nothing
 
--- can f = case f of Just _ -> True; Nothing -> False
--- canApplyConstraint c state = can (applyConstraint c state)
-
-canApplyConstraint c state =
-    case applyConstraint c state of
-        Just _  -> True
-        Nothing -> False
-
+--
+-- Usage interface
+--
 
 constructState :: String -> [String] -> ParseState
 constructState text initialParams = Parsing text $ constructStore initialParams
 
 parseFrom :: Grammar -> String -> ParseState -> ParseState
 parseFrom g start st = parse g st (production start  g)
+
+obtainResult :: ParseState -> Either String String
+obtainResult (Parsing s _) = Right s
+obtainResult Failure = Left "failure"

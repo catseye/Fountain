@@ -15,12 +15,11 @@ data GenState = Generating String Store
 -- Utils
 --
 
+can (Just _) = True
+can Nothing  = False
+
 genTerminal c (Generating cs a) = (Generating (c:cs) a)
 genTerminal _c Failure = Failure
-
-obtainResult :: GenState -> Either String String
-obtainResult (Generating s _) = Right s
-obtainResult Failure = Left "failure"
 
 --
 -- Alt choices need preconditions during generation because
@@ -62,7 +61,7 @@ gen g state@(Generating _str store) (Alt False choices) =
         [] ->
             let
                 preConditionedChoices = map (\x -> (getPreCondition x, x)) choices
-                isApplicableChoice (Just c, _) = canApplyConstraint c store
+                isApplicableChoice (Just c, _) = can $ applyConstraint c store
                 isApplicableChoice _ = False
                 applicableChoices = filter (isApplicableChoice) preConditionedChoices
             in
@@ -168,12 +167,6 @@ applyRelConstraint op v e st =
         _ ->
             Nothing
 
-canApplyConstraint c store =
-    case applyConstraint c store of
-        Just _  -> True
-        Nothing -> False
-
-
 --
 -- Usage interface
 --
@@ -186,3 +179,7 @@ generateFrom g start state = revgen $ gen g state (production start g)
     where
         revgen (Generating s a) = Generating (reverse s) a
         revgen other = other
+
+obtainResult :: GenState -> Either String String
+obtainResult (Generating s _) = Right s
+obtainResult Failure = Left "failure"
