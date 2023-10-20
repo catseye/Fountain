@@ -4,7 +4,7 @@ import Data.Maybe (mapMaybe)
 
 import Language.Fountain.Store
 import Language.Fountain.Constraint
-import Language.Fountain.ApplyConstraint
+import qualified Language.Fountain.ApplyConstraint as ApplyConstraint
 import Language.Fountain.Grammar
 
 
@@ -71,7 +71,7 @@ parse g state (Alt False choices) =
         [] ->
             let
                 preConditionedChoices = map (\x -> (getPreCondition x, x)) choices
-                isApplicableChoice (Just c, _) = can $ applyConstraintOnState c state
+                isApplicableChoice (Just c, _) = canApplyConstraint c state
                 isApplicableChoice _ = False
                 applicableChoices = filter (isApplicableChoice) preConditionedChoices
             in
@@ -110,23 +110,26 @@ parse g (Parsing text store) (NonTerminal nt actuals) =
             Failure ->
                 Failure
 
-parse _g state@(Parsing s _) (Constraint cstr) =
-    case applyConstraintOnState cstr state of
+parse _g state (Constraint cstr) = applyConstraint cstr state
+
+
+applyConstraint :: Constraint -> ParseState -> ParseState
+applyConstraint _ Failure = Failure
+applyConstraint (Lookahead s) state@(Parsing (c:_) _) =
+    if s == [c] then state else Failure
+applyConstraint (Lookahead _) _ = Failure
+applyConstraint other (Parsing s store) =
+    case ApplyConstraint.applyConstraint other store of
         Just store' ->
             Parsing s store'
         Nothing ->
             Failure
 
+canApplyConstraint :: Constraint -> ParseState -> Bool
+canApplyConstraint cstr state = case applyConstraint cstr state of
+    Failure -> False
+    _ -> True
 
--- FIXME: this is goofy.  It takes the entire state but returns only the store (maybe)
-applyConstraintOnState :: Constraint -> ParseState -> Maybe Store
-applyConstraintOnState _ Failure = Nothing
-applyConstraintOnState (Lookahead s) (Parsing (c:_) st) =
-    if s == [c] then Just st else Nothing
-applyConstraintOnState (Lookahead _) _ =
-    Nothing
-applyConstraintOnState other (Parsing _ store) =
-    applyConstraint other store
 
 --
 -- Usage interface
