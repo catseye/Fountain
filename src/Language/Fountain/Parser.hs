@@ -39,6 +39,16 @@ missingPreConditions choices =
         Nothing -> Just x
       ) choices
 
+getApplicableChoices state choices =
+    let
+        preConditionedChoices = map (\x -> (getPreCondition x, x)) choices
+        isApplicableChoice (Just c, _) = case applyConstraint c state of
+            Failure -> False
+            _ -> True
+        isApplicableChoice _ = False
+    in
+        filter (isApplicableChoice) preConditionedChoices
+
 --
 -- Parser
 --
@@ -56,7 +66,7 @@ parse g state (Seq s) = parseSeq state s where
 
 -- Hello, Mrs Backtracking Alternation!
 parse g state (Alt True choices) = parseAlt state choices where
-    -- FIXME: select only the choices that could possibly apply
+    -- Note, we try all the possibilities here, regardless of their preconditions.
     parseAlt _st [] = Failure
     parseAlt st (e : rest) =
         case parse g st e of
@@ -69,13 +79,7 @@ parse g state (Alt False choices) =
         missing@(_:_) ->
             error ("No pre-condition present on these Alt choices: " ++ (depictExprs missing))
         [] ->
-            let
-                preConditionedChoices = map (\x -> (getPreCondition x, x)) choices
-                isApplicableChoice (Just c, _) = canApplyConstraint c state
-                isApplicableChoice _ = False
-                applicableChoices = filter (isApplicableChoice) preConditionedChoices
-            in
-                parseAlt state applicableChoices where
+            parseAlt state (getApplicableChoices state choices)
             where
                 parseAlt _st [] = Failure
                 -- we ignore the constraint here because it will be found and applied when we descend into e
@@ -124,12 +128,6 @@ applyConstraint other (Parsing s store) =
             Parsing s store'
         Nothing ->
             Failure
-
-canApplyConstraint :: Constraint -> ParseState -> Bool
-canApplyConstraint cstr state = case applyConstraint cstr state of
-    Failure -> False
-    _ -> True
-
 
 --
 -- Usage interface
