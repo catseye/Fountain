@@ -83,14 +83,17 @@ parse g state (Alt False choices) =
                 parseAlt _st [] = Failure
                 -- we ignore the constraint here because it will be found and applied when we descend into e
                 parseAlt st [(_, e)] = parse g st e
-                parseAlt _st other =
-                    error ("Multiple pre-conditions are satisfied in Alt: " ++ (depictExprs (map (snd) other)))
+                parseAlt (Parsing _str store) other =
+                    error ("Multiple pre-conditions are satisfied in Alt: " ++ (depictExprs (map (snd) other)) ++ ", with state: " ++ show store)
+                parseAlt _ _ = Failure
 
-parse g state (Loop l _) = parseLoop state l where
+parse g state (Loop l []) = parseLoop state l where
     parseLoop st e =
         case parse g st e of
             Failure -> st
             st'     -> parseLoop st' e
+
+parse _g _state (Loop l (_:_)) = error ("Parsing can't handle decorated Loops: " ++ depictExpr l)
 
 parse _g state (Terminal c) = expectTerminal c state
 

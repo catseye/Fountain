@@ -15,7 +15,7 @@ preprocessGrammarForGeneration (Grammar productions) = Grammar $ map (preprocess
 preprocessGrammarForParsing :: Grammar -> Grammar
 preprocessGrammarForParsing (Grammar productions) = Grammar $ map (preprocessProduction) productions where
     preprocessProduction p@Production{ constituents=c } = p { constituents=preprocessExpr c }
-    preprocessExpr = eliminateSingleAlts
+    preprocessExpr = eliminateSingleAlts . coalesceConstraints
 
 
 --
