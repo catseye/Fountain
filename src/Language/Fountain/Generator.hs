@@ -152,13 +152,11 @@ applyConstraint (Both c1 c2) st =
             applyConstraint c2 st'
         Nothing ->
             Nothing
-applyConstraint (Lookahead _) _st =
-    -- This only applies in parsing; during generation, there is nothing to look ahead TO!
-    Nothing
 applyConstraint (GreaterThan v e) st = applyRelConstraint (>) v e st
 applyConstraint (GreaterThanOrEqual v e) st = applyRelConstraint (>=) v e st
 applyConstraint (LessThan v e) st = applyRelConstraint (<) v e st
 applyConstraint (LessThanOrEqual v e) st = applyRelConstraint (<=) v e st
+applyConstraint other _state = error ("Can't handle this: " ++ show other)
 
 applyRelConstraint op v e st =
     case (fetch v st, ceval e st) of

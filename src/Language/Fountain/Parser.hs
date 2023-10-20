@@ -73,7 +73,7 @@ parse g state (Alt False choices) =
         [] ->
             let
                 preConditionedChoices = map (\x -> (getPreCondition x, x)) choices
-                isApplicableChoice (Just c, _) = can $ applyConstraint c state
+                isApplicableChoice (Just c, _) = can $ applyConstraintOnState c state
                 isApplicableChoice _ = False
                 applicableChoices = filter (isApplicableChoice) preConditionedChoices
             in
@@ -113,7 +113,7 @@ parse g (Parsing text store) (NonTerminal nt actuals) =
                 Failure
 
 parse _g state@(Parsing s _) (Constraint cstr) =
-    case applyConstraint cstr state of
+    case applyConstraintOnState cstr state of
         Just store' ->
             Parsing s store'
         Nothing ->
@@ -121,15 +121,23 @@ parse _g state@(Parsing s _) (Constraint cstr) =
 
 
 -- FIXME: this is goofy.  It takes the entire state but returns only the store (maybe)
-applyConstraint :: Constraint -> ParseState -> Maybe Store
-applyConstraint _ Failure = Nothing
-applyConstraint (UnifyConst v i) (Parsing _ st) =
+applyConstraintOnState :: Constraint -> ParseState -> Maybe Store
+applyConstraintOnState _ Failure = Nothing
+applyConstraintOnState (Lookahead s) (Parsing (c:_) st) =
+    if s == [c] then Just st else Nothing
+applyConstraintOnState (Lookahead _) _ =
+    Nothing
+applyConstraintOnState other (Parsing _ store) =
+    applyConstraint other store
+
+applyConstraint :: Constraint -> Store -> Maybe Store
+applyConstraint (UnifyConst v i) st =
     case fetch v st of
         Just value ->
             if value == i then Just st else Nothing
         Nothing ->
             Just $ insert v i st
-applyConstraint (UnifyVar v w) (Parsing _ st) =
+applyConstraint (UnifyVar v w) st =
     case (fetch v st, fetch w st) of
         (Just vValue, Just wValue) ->
             if vValue == wValue then Just st else Nothing
@@ -139,35 +147,31 @@ applyConstraint (UnifyVar v w) (Parsing _ st) =
             Just $ insert v wValue st
         (Nothing, Nothing) ->
             Just st
-applyConstraint (Inc v e) (Parsing _ st) =
+applyConstraint (Inc v e) st =
     case ceval e st of
         Just delta ->
             Just $ update (\i -> Just (i + delta)) v st
         Nothing ->
             Nothing
-applyConstraint (Dec v e) (Parsing _ st) =
+applyConstraint (Dec v e) st =
     case ceval e st of
         Just delta ->
             Just $ update (\i -> Just (i - delta)) v st
         Nothing ->
             Nothing
-applyConstraint (Both c1 c2) state@(Parsing s _st) =
-    case applyConstraint c1 state of
+applyConstraint (Both c1 c2) st =
+    case applyConstraint c1 st of
         Just st' ->
-            applyConstraint c2 (Parsing s st')
+            applyConstraint c2 st'
         Nothing ->
             Nothing
-applyConstraint (Lookahead s) (Parsing (c:_) st) =
-    if s == [c] then Just st else Nothing
-applyConstraint (Lookahead _) _ =
-    Nothing
-applyConstraint (GreaterThan v e) state = applyRelConstraint (>) v e state
-applyConstraint (GreaterThanOrEqual v e) state = applyRelConstraint (>=) v e state
-applyConstraint (LessThan v e) state = applyRelConstraint (<) v e state
-applyConstraint (LessThanOrEqual v e) state = applyRelConstraint (<=) v e state
+applyConstraint (GreaterThan v e) st = applyRelConstraint (>) v e st
+applyConstraint (GreaterThanOrEqual v e) st = applyRelConstraint (>=) v e st
+applyConstraint (LessThan v e) st = applyRelConstraint (<) v e st
+applyConstraint (LessThanOrEqual v e) st = applyRelConstraint (<=) v e st
+applyConstraint other _state = error ("Can't handle this: " ++ show other)
 
-applyRelConstraint _ _ _ Failure = Nothing
-applyRelConstraint op v e (Parsing _ st) =
+applyRelConstraint op v e st =
     case (fetch v st, ceval e st) of
         (Just value, Just target) ->
             if value `op` target then Just st else Nothing
