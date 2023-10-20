@@ -42,9 +42,12 @@ decorateLoops (Seq seqExprs) = Seq (decorateSeq seqExprs) where
     decorateSeq ((Loop expr _):rest) =
         let
             expr' = decorateLoops expr
-            (constraints, rest') = absorbConstraints rest
+            (constraints, _) = absorbConstraints rest
+            -- Note that we do not MOVE the constraints into the loop;
+            -- we COPY them; this may be a PROBLEM if some of them have
+            -- effects on the state (e.g. += )
         in
-            (Loop expr' constraints):(decorateSeq rest')
+            (Loop expr' constraints):(decorateSeq rest)
     decorateSeq (expr:rest) =
         (decorateLoops expr):(decorateSeq rest)
     absorbConstraints :: [Expr] -> ([Constraint], [Expr])
