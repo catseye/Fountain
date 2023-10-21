@@ -75,7 +75,6 @@ TODO
 
 ### Implementation
 
-*   Allow `--` for text-file to take the text to be parsed from stdin.
 *   Improved pretty-printing (coalesced terminals, no unnecessary parens, etc.)
 
 ### Aspirational
