@@ -258,6 +258,12 @@ occur within it, with the `(*)` symbol.
     <=== abbbbbbbbbc
     ===> Success
 
+Backtracking does not currently work inside loops.
+
+    Goal(*) ::= "a" { "bb" | "bbb" } "c";
+    <=== abbbbbbbbbc
+    ???> Failure
+
 10 is divisible by 2.
 
     Goal(*) ::= "a" { "bb" } "c" | "a" { "bbb" } "c";
@@ -412,23 +418,12 @@ Greater-than-or-equal and less-than-or-equal constraints by variable.
 A production may be marked as allowing backtracking to
 occur within it, with the `(*)` symbol.
 
-> 5 = 5.
-> 
->     Goal ::= <. a = 0 .> { Item<a> } <. a = n .>;
->     Item<a>(*) ::= "####" <. a += 4 .>
->                  | "ooooo" <. a += 5 .>
->                  | "xxxxxxx" <. a += 7 .>;
->     <=== n=5
->     ===> ooooo
-> 
-> 9 = 4 + 5.
-> 
->     Goal ::= <. a = 0 .> { Item<a> } <. a = n .>;
->     Item<a>(*) ::= "####" <. a += 4 .>
->                  | "ooooo" <. a += 5 .>
->                  | "xxxxxxx" <. a += 7 .>;
->     <=== n=9
->     ===> ####ooooo
+Enabling backtracking for generation currently has problems
+and is currently disabled.
+
+    Goal(*) ::= <. n = 0 .> ("a" | "b" <. n += 1 .>) ("a" <. n += 1 .> | "b") <. n = 2 .>;
+    <=== 
+    ???> Backtracking disabled
 
 Note how these don't work at all with backtracking disabled,
 because two of the alternatives start with the same terminal.

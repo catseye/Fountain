@@ -71,8 +71,6 @@ TODO
 
 ### Semantics
 
-*   Is it a mess to allow constraints that modify the store in places where
-    constraints are checked (pre-conditions of choices and post-conditions of loops)?
 *   Params on top-level Goal mean those values must be provided from environment.
 
 ### Implementation
@@ -107,15 +105,15 @@ By default, backtracking is not permitted.  Productions may be marked
 with `(*)` to indicate that backtracking is permitted when processing
 alternations in that production.
 
+Note however, that backtracking currently has problems, and enabling
+it is disabled.
+
 When backtracking is not permitted, every choice in an alternation
 must start with a constraint.  Exactly zero or one of those constraints
 must be satisfied in a given state.  If none are, that is a failure (and
 if this failure happens in an enclosing context where backtracking *is*
 permitted, then backtracking will occur in that context).  If more than
 one are, the process will abort with an error message.
-
-Note, backtracking currently has problems.  The preprocessor needs to
-do more work in order for it to work properly.
 
 Also:
 
