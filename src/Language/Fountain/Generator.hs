@@ -52,7 +52,13 @@ gen g state (Seq s) = genSeq state s where
             st'     -> genSeq st' rest
 
 -- Hello, Mrs Backtracking Alternation!
-gen _ _ (Alt True _) = error "Backtracking disabled during generation"
+gen g state (Alt True choices) = genAlt state choices where
+    -- Note, we try all the possibilities here, regardless of their preconditions.
+    genAlt _st [] = Failure
+    genAlt st (e : rest) =
+        case gen g st e of
+            Failure -> genAlt st rest
+            st'     -> st'
 
 -- Hello, Mrs Non-Backtracking Alternation!
 gen g state@(Generating _str store) (Alt False choices) =

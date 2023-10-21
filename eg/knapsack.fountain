@@ -1,4 +1,5 @@
-Goal ::= <. a = 0 .> <. b = 0 .> { Item<a> <. b += 1 .> <. a <= n .> } <. a = n .>;
-Item<a>(*) ::= "####" <. a += 4 .>
-             | "ooooo" <. a += 5 .>
-             | "xxxxxxx" <. a += 7 .>;
+Goal<n>       ::= <. a = 0 .> Item<a, n>;
+Item<a, n>(*) ::= <. a = n .>
+                | "####" <. a += 4 .> <. a <= n .> Item<a, n>
+                | "ooooo" <. a += 5 .> <. a <= n .> Item<a, n>
+                | "xxxxxxx" <. a += 7 .> <. a <= n .> Item<a, n>;

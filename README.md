@@ -104,15 +104,21 @@ By default, backtracking is not permitted.  Productions may be marked
 with `(*)` to indicate that backtracking is permitted when processing
 alternations in that production.
 
-Note however, that backtracking currently has problems, and enabling
-it is disabled.
-
 When backtracking is not permitted, every choice in an alternation
 must start with a constraint.  Exactly zero or one of those constraints
 must be satisfied in a given state.  If none are, that is a failure (and
 if this failure happens in an enclosing context where backtracking *is*
 permitted, then backtracking will occur in that context).  If more than
 one are, the process will abort with an error message.
+
+It should be noted that the implementation of backtracking currently has
+limitations.  The scope of a "choice point" that can be backtracked to
+is limited to the alternation expression in which it occurs; a failure
+that occurs after (that is, outside of) this expression will not cause
+a backtrack to occur.  In particular, backtracking does not work at all
+as you might expect inside a loop.  There is a way to write recursive
+productions in a "tail recursive" manner such that they do backtrack,
+but this style of writing the grammar may not be entirely natural.
 
 Also:
 

@@ -258,12 +258,6 @@ occur within it, with the `(*)` symbol.
     <=== abbbbbbbbbc
     ===> Success
 
-Backtracking does not currently work inside loops.
-
-    Goal(*) ::= "a" { "bb" | "bbb" } "c";
-    <=== abbbbbbbbbc
-    ???> Failure
-
 10 is divisible by 2.
 
     Goal(*) ::= "a" { "bb" } "c" | "a" { "bbb" } "c";
@@ -274,6 +268,27 @@ Backtracking does not currently work inside loops.
 
     Goal(*) ::= "a" { "bb" } "c" | "a" { "bbb" } "c";
     <=== abbbbbbbbbbbc
+    ???> Failure
+
+Backtracking does not currently work as you would expect inside loops.
+
+    Goal(*) ::= "a" { "bb" | "bbb" } "c";
+    <=== abbbbbbbbbc
+    ???> Failure
+
+We can however write the loop as a recursive production.
+
+    Goal(*) ::= "a" R;
+    R(*)    ::= "bb" R | "bbb" R | "c";
+    <=== abbbbbbbbbc
+    ===> Success
+
+But note, the "choice point scope" is limited to the alternation
+expression.  So this formulation won't work:
+
+    Goal(*) ::= "a" R "c";
+    R(*)    ::= "bb" R | "bbb" R;
+    <=== abbbbbbbbbc
     ???> Failure
 
 Note how these don't work at all with backtracking disabled,
@@ -418,19 +433,56 @@ Greater-than-or-equal and less-than-or-equal constraints by variable.
 A production may be marked as allowing backtracking to
 occur within it, with the `(*)` symbol.
 
-Enabling backtracking for generation currently has problems
-and is currently disabled.
+Note however that the "choice point scope" for backtracking
+is limited to the alternation expression.  So any failure
+after (that is, outside of) the alternation expression won't
+cause a backtrack to occur.
 
     Goal(*) ::= <. n = 0 .> ("a" | "b" <. n += 1 .>) ("a" <. n += 1 .> | "b") <. n = 2 .>;
     <=== 
-    ???> Backtracking disabled
+    ???> Failure
+
+So to get these to work, they need to be formulated in a
+"tail recursive" way that may not be entirely natural.
+
+    Goal(*)    ::= <. n = 0 .> One<n>;
+    One<n>(*)  ::= ("a" Two<n> | "b" <. n += 1 .> Two<n>);
+    Two<n>(*)  ::= ("a" <. n += 1 .> Three<n> | "b" Three<n>);
+    Three<n>(*)::= <. n = 2 .>;
+    <=== 
+    ===> ba
+
+The "tail recursive" production can be actually recursive
+to allow unbounded extent on this.
+
+Note that the alternation shown below is currently processed as
+ordered choice.  This is not necessarily guaranteed.
+
+    Goal<n>       ::= <. a = 0 .> Item<a, n>;
+    Item<a, n>(*) ::= <. a = n .>
+                    | "####" <. a += 4 .> <. a <= n .> Item<a, n>
+                    | "ooooo" <. a += 5 .> <. a <= n .> Item<a, n>
+                    | "xxxxxxx" <. a += 7 .> <. a <= n .> Item<a, n>;
+    <=== n=30
+    ===> ####################oooooooooo
+
+You can't sum to 6 with these choices.
+
+    Goal<n>       ::= <. a = 0 .> Item<a, n>;
+    Item<a, n>(*) ::= <. a = n .>
+                    | "####" <. a += 4 .> <. a <= n .> Item<a, n>
+                    | "ooooo" <. a += 5 .> <. a <= n .> Item<a, n>
+                    | "xxxxxxx" <. a += 7 .> <. a <= n .> Item<a, n>;
+    <=== n=6
+    ???> Failure
 
 Note how these don't work at all with backtracking disabled,
 because two of the alternatives start with the same terminal.
 
-    Goal ::= <. a = 0 .> { Item<a> } <. a = n .>;
-    Item<a>    ::= "####" <. a += 4 .>
-                 | "ooooo" <. a += 5 .>
-                 | "xxxxxxx" <. a += 7 .>;
-    <=== n=9
+    Goal<n>       ::= <. a = 0 .> Item<a, n>;
+    Item<a, n>    ::= <. a = n .>
+                    | "####" <. a += 4 .> <. a <= n .> Item<a, n>
+                    | "ooooo" <. a += 5 .> <. a <= n .> Item<a, n>
+                    | "xxxxxxx" <. a += 7 .> <. a <= n .> Item<a, n>;
+    <=== n=6
     ???> No pre-condition
