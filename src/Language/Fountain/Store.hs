@@ -5,8 +5,9 @@ module Language.Fountain.Store (
 ) where
 
 --
--- Variable store.  This is not very general; it contains values of variables
--- (and some other stuff) and knows how to apply constraints to the store.
+-- Variable store.  This is not as general-purpose as it might sound.  It
+-- not only contains values of variables, it can record a tracing log
+-- and it knows how to apply constraints to the store.
 --
 
 import qualified Data.Map as Map

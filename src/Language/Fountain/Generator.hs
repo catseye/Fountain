@@ -92,9 +92,9 @@ gen g state (Loop l postconditions) = genLoop state l where
             Failure -> Failure
             st'@(Generating str store)  ->
                 case checkLimit postconditions store of
-                    -- All postconditions met, terminate the loop.
-                    -- (You know, we don't even need to use store' here, because
-                    -- the constraints in it will follow directly and we'll apply them)
+                    -- All postconditions met, terminate the loop.  (Note that we throw away
+                    -- the result of applying the constraints here, because they will follow
+                    -- this loop directly, and we don't want to apply them twice.)
                     Just _       -> Generating str (trace ("Done " ++ (show postconditions)) store)
                     -- Not all postconditions met -- go 'round again
                     Nothing      -> genLoop st' e
