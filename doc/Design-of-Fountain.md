@@ -211,17 +211,36 @@ to be constructed.
 
 The fact that every CSL can be captured by an LBA suggests maybe we
 could just linear-bound the amount of storage used by a Fountain
-grammar in the worst case.  Maybe; I haven't thought much about
-this yet.  My initial impression is that it seems a bit artificial.
+grammar in the worst case.
 
-Thinking about it a bit more, to make this work for both parsing
-and generation, what we really need to do is to show the context
-and the string (whether it be the input for parsing or the result
-of generation) are related in size linearly -- that one is never
-more than _k_ times bigger than the other, where _k_ is a constant
-for the grammar).  It might be feasible to do that in simple cases.
-My intuition at the moment is that it surely breaks down at some
-point, but it's not immediately clear where that point begins.
+Having thought about it, this is probably the way to go.  When
+processing (parsing or generating) a Fountain grammar, the user ought
+to be able to specify a "fuel efficiency" _E_, which is the linear bound.
+
+(Whether this is specified in the source file, or through some other
+means like a command-line option, is immaterial for the present
+purposes.  Presumbly though, it's omission doesn't stop us from
+processing the grammar, we simply don't make the check in this case)
+
+Each time a character is consumed from the input (resp. generated to
+the output), _E_ units of "fuel" are gained.  Each time a new unit of
+storage is allocated for storing the context used by the grammar,
+one unit of "fuel" is expended.  Expending more fuel than has been
+accumulated so far results in some kind of warning or error condition
+(the salient thing being that the user is made aware that this grammar
+exceeds the linear bound.)
+
+It should be noted that the integers are unbounded, so an
+operation like `a += 1`, may or may not allocate a new unit of
+storage (a machine word, say), so the usage needs to be recalculated
+afterwards.
+
+Freeing up storage does not allow the grammar to reclaim "fuel".
+
+This check could probably be done statically, using some kind of
+abstract interpretation; but it would also be possible (and probably
+a lot easier) to add it as a dynamic check while processing the
+grammar.
 
 #### Does all this talk of complexity classes even mean anything?
 
@@ -316,7 +335,8 @@ to
 When generating from a grammar, we often want to take a "random sample"
 of the space of utterances that the grammar defines.  There are methods
 that have been developed to do this; not just for grammars, but any
-recursive description of a structure; for example [Boltzmann Samplers][].
+recursive description of a structure; for example [Boltzmann Samplers][]
+(PDF).
 
 We should probably go in this direction.
 
@@ -365,5 +385,5 @@ This raises a number of design questions though:
 [Exanoke]: https://catseye.tc/node/Exanoke
 [Tamsin]: https://catseye.tc/node/Tamsin
 [Tandem]: https://catseye.tc/node/Tandem
-[Boltzmann Samplers]: https://github.com/cpressey/Some-Papers-I-Really-Liked#boltzmann-samplers-for-the-random-generation-of-combinatorial-structures
-[ambinate.py]: https://gist.github.com/cpressey/dd3f63eda91b33e429fa
+[Boltzmann Samplers]: https://algo.inria.fr/flajolet/Publications/DuFlLoSc04.pdf
+[ambinate.py]: https://codeberg.org/catseye/Dipple/src/branch/master/python/ambinate.py
