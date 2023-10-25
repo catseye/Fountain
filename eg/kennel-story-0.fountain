@@ -5,7 +5,7 @@
 //
 
 Goal ::=
-    <. dx = 1 .> <. x = 0 .> <. a = 0 .> <. lx = 0 .>
+    <. dx = 1 .> <. x = 0 .> <. a = 0 .> <. lx = 1 .>
     {
         DogMove<x, dx>
         <. x += dx .>
@@ -28,5 +28,5 @@ DogBack<x> ::=
 DogTurnAround<x, dx, lx> ::=
       <. x > lx .> <. dx -= 2 .> <. lx += 1 .>
     | <. x < 1 .> <. dx += 2 .>
-    | <. dx += 0 .>
+    | <. x >= 1 .> <. x <= lx .>
     ;

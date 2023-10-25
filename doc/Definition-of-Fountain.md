@@ -20,7 +20,7 @@ symbols enclosed in big angle quotes.)  Note, this paragraph should
 be rewritten for clarity at some point.
 
     Grammar ::= {Production}.
-    Production ::= NonTerminal [Formals] "::=" {Expr0}.
+    Production ::= NonTerminal [Formals] ["(*)"] "::=" {Expr0}.
     Expr0 ::= Expr1 {"|" Expr1}.
     Expr1 ::= Term {Term}.
     Term  ::= "{" Expr0 "}"
@@ -42,8 +42,7 @@ be rewritten for clarity at some point.
     Terminal ::= <<">> <<any except ">>+ <<">> | <<#>>IntLit.
     IntLit ::= [<<->>] <<digit>>+.
 
-The Tests
----------
+Tests follow.
 
     -> Functionality "Parse using Fountain Grammar" is implemented by
     -> shell command "bin/fountain parse %(test-body-file) %(test-input-file)"
@@ -57,7 +56,8 @@ The Tests
     -> Functionality "Generate using Fountain Grammar with input parameters" is implemented by
     -> shell command "bin/fountain generate %(test-body-file) %(test-input-text)"
 
-### Parsing
+Tests for Parsing
+-----------------
 
     -> Tests for functionality "Parse using Fountain Grammar"
 
@@ -171,6 +171,26 @@ Greater-than and less-than constraints by variable.
     <=== a
     ===> Success
 
+Greater-than-or-equal and less-than-or-equal constraints by constant.
+
+    Goal ::= <. a = 3 .> <. a >= 2 .> <. a <= 4 .> "a";
+    <=== a
+    ===> Success
+
+    Goal ::= <. a = 3 .> <. a >= 3 .> <. a <= 3 .> "a";
+    <=== a
+    ===> Success
+
+Greater-than-or-equal and less-than-or-equal constraints by variable.
+
+    Goal ::= <. a = 3 .> <. h = 4 .> <. l = 2 .> <. a >= l .> <. a <= h .> "a";
+    <=== a
+    ===> Success
+
+    Goal ::= <. a = 3 .> <. h = 3 .> <. l = 3 .> <. a >= l .> <. a <= h .> "a";
+    <=== a
+    ===> Success
+
 ### Parsing with local variables
 
     Goal ::= "Hi" Sp "there" Sp "world" "!";
@@ -227,7 +247,59 @@ When parsing, parameters can also be supplied from external sources.
     <=== aabbcc
     ???> Failure
 
-### Generation
+### Backtracking
+
+A production may be marked as allowing backtracking to
+occur within it, with the `(*)` symbol.
+
+9 is divisible by 3.
+
+    Goal(*) ::= "a" { "bb" } "c" | "a" { "bbb" } "c";
+    <=== abbbbbbbbbc
+    ===> Success
+
+10 is divisible by 2.
+
+    Goal(*) ::= "a" { "bb" } "c" | "a" { "bbb" } "c";
+    <=== abbbbbbbbbbc
+    ===> Success
+
+11 is not divisible by 2 or by 3.
+
+    Goal(*) ::= "a" { "bb" } "c" | "a" { "bbb" } "c";
+    <=== abbbbbbbbbbbc
+    ???> Failure
+
+Backtracking does not currently work as you would expect inside loops.
+
+    Goal(*) ::= "a" { "bb" | "bbb" } "c";
+    <=== abbbbbbbbbc
+    ???> Failure
+
+We can however write the loop as a recursive production.
+
+    Goal(*) ::= "a" R;
+    R(*)    ::= "bb" R | "bbb" R | "c";
+    <=== abbbbbbbbbc
+    ===> Success
+
+But note, the "choice point scope" is limited to the alternation
+expression.  So this formulation won't work:
+
+    Goal(*) ::= "a" R "c";
+    R(*)    ::= "bb" R | "bbb" R;
+    <=== abbbbbbbbbc
+    ???> Failure
+
+Note how these don't work at all with backtracking disabled,
+because two of the alternatives start with the same terminal.
+
+    Goal ::= "a" { "bb" } "c" | "a" { "bbb" } "c";
+    <=== abbbbbbbbbc
+    ???> Multiple pre-conditions
+
+Tests for Generation
+--------------------
 
     -> Tests for functionality "Generate using Fountain Grammar"
 
@@ -236,13 +308,36 @@ Sequence.
     Goal ::= "f" "o" "o";
     ===> foo
 
-Alternation.
+Alternation.  Note that, when generating, Alt choices need preconditions because,
+unlike parsing, we need some guidance of which one to pick.
 
     Goal ::= "f" | "o";
+    ???> No pre-condition
+
+    Goal ::= "f" | <. a = 0 .> "o";
+    ???> No pre-condition
+
+    Goal ::= (<. a = 0 .> "f") | "o";
+    ???> No pre-condition
+
+But if all choices of the Alt have constraints, we are able to select the one
+that fulfills the constraints.
+
+    Goal ::= <. a = 1 .> (<. a = 1 .> "f" | <. a = 0 .> "o");
     ===> f
 
-    Goal ::= ("f" | "o") ("a" | "z");
-    ===> fa
+    Goal ::= <. a = 0 .> (<. a = 1 .> "f" | <. a = 0 .> "o");
+    ===> o
+
+But only and exactly one of the choices must have its constraints satisfied by
+the current state.  If more than one choice has satisfiable constraints, then
+that is an ambiguous situation, and (in normal operation) it is an error.
+
+    Goal ::= <. a = 0 .> "f" | <. a = 1 .> "o";
+    ???> Multiple pre-conditions
+
+    Goal ::= <. a = 0 .> (<. a = 0 .> "f" | <. a = 1 .> "o") (<. a = 1 .> "a" | <. a = 0 .> "z");
+    ===> fz
 
 Repetition.  Without constraints, this will error out.
 
@@ -303,6 +398,22 @@ Greater-than and less-than constraints by variable.
     Goal ::= <. a = 3 .> <. h = 4 .> <. l = 2 .> <. a > l .> <. a < h .> "a";
     ===> a
 
+Greater-than-or-equal and less-than-or-equal constraints by constant.
+
+    Goal ::= <. a = 3 .> <. a >= 2 .> <. a <= 4 .> "a";
+    ===> a
+
+    Goal ::= <. a = 3 .> <. a >= 3 .> <. a <= 3 .> "a";
+    ===> a
+
+Greater-than-or-equal and less-than-or-equal constraints by variable.
+
+    Goal ::= <. a = 3 .> <. h = 4 .> <. l = 2 .> <. a >= l .> <. a <= h .> "a";
+    ===> a
+
+    Goal ::= <. a = 3 .> <. h = 3 .> <. l = 3 .> <. a >= l .> <. a <= h .> "a";
+    ===> a
+
 ### Generation with local variables
 
     Goal ::= "Hi" Sp "there" Sp "world" "!";
@@ -316,3 +427,62 @@ Greater-than and less-than constraints by variable.
     Sp<x> ::= <. n = 0 .> { " " <. n += 1 .> } <. n > 0 .> <. n = x .>;
     <=== a=3
     ===> Hi   there   world!
+
+### Backtracking
+
+A production may be marked as allowing backtracking to
+occur within it, with the `(*)` symbol.
+
+Note however that the "choice point scope" for backtracking
+is limited to the alternation expression.  So any failure
+after (that is, outside of) the alternation expression won't
+cause a backtrack to occur.
+
+    Goal(*) ::= <. n = 0 .> ("a" | "b" <. n += 1 .>) ("a" <. n += 1 .> | "b") <. n = 2 .>;
+    <=== 
+    ???> Failure
+
+So to get these to work, they need to be formulated in a
+"tail recursive" way that may not be entirely natural.
+
+    Goal(*)    ::= <. n = 0 .> One<n>;
+    One<n>(*)  ::= ("a" Two<n> | "b" <. n += 1 .> Two<n>);
+    Two<n>(*)  ::= ("a" <. n += 1 .> Three<n> | "b" Three<n>);
+    Three<n>(*)::= <. n = 2 .>;
+    <=== 
+    ===> ba
+
+The "tail recursive" production can be actually recursive
+to allow unbounded extent on this.
+
+Note that the alternation shown below is currently processed as
+ordered choice.  This is not necessarily guaranteed.
+
+    Goal<n>       ::= <. a = 0 .> Item<a, n>;
+    Item<a, n>(*) ::= <. a = n .>
+                    | "####" <. a += 4 .> <. a <= n .> Item<a, n>
+                    | "ooooo" <. a += 5 .> <. a <= n .> Item<a, n>
+                    | "xxxxxxx" <. a += 7 .> <. a <= n .> Item<a, n>;
+    <=== n=30
+    ===> ####################oooooooooo
+
+You can't sum to 6 with these choices.
+
+    Goal<n>       ::= <. a = 0 .> Item<a, n>;
+    Item<a, n>(*) ::= <. a = n .>
+                    | "####" <. a += 4 .> <. a <= n .> Item<a, n>
+                    | "ooooo" <. a += 5 .> <. a <= n .> Item<a, n>
+                    | "xxxxxxx" <. a += 7 .> <. a <= n .> Item<a, n>;
+    <=== n=6
+    ???> Failure
+
+Note how these don't work at all with backtracking disabled,
+because two of the alternatives start with the same terminal.
+
+    Goal<n>       ::= <. a = 0 .> Item<a, n>;
+    Item<a, n>    ::= <. a = n .>
+                    | "####" <. a += 4 .> <. a <= n .> Item<a, n>
+                    | "ooooo" <. a += 5 .> <. a <= n .> Item<a, n>
+                    | "xxxxxxx" <. a += 7 .> <. a <= n .> Item<a, n>;
+    <=== n=6
+    ???> No pre-condition

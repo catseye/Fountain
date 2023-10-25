@@ -1,9 +1,10 @@
-module Main where
+module Main (main) where
 
 import System.Environment
 import System.Exit
 import System.IO
 
+import qualified Language.Fountain.Grammar as Grammar
 import qualified Language.Fountain.Loader as Loader
 import qualified Language.Fountain.Parser as Parser
 import qualified Language.Fountain.Generator as Generator
@@ -12,16 +13,23 @@ import qualified Language.Fountain.Preprocessor as Preprocessor
 
 data Flags = Flags {
     dumpState :: Bool,
+    startSymbol :: Maybe String,
     suppressNewline :: Bool
   } deriving (Show, Ord, Eq)
 
-defaultFlags = Flags{ dumpState = False, suppressNewline = False }
+defaultFlags = Flags{ dumpState = False, startSymbol = Nothing, suppressNewline = False }
 
 parseFlags flags ("--dump-state":rest) =
     parseFlags flags{ dumpState = True } rest
+parseFlags flags ("--start-symbol":s:rest) =
+    parseFlags flags{ startSymbol = Just s } rest
 parseFlags flags ("--suppress-newline":rest) =
     parseFlags flags{ suppressNewline = True } rest
 parseFlags flags other = (flags, other)
+
+getStartSymbol g flags = case startSymbol flags of
+    Just x -> x
+    Nothing -> (Grammar.startSymbol g)
 
 
 main = do
@@ -31,25 +39,30 @@ main = do
     case args' of
         ["load", grammarFileName] -> do
             grammar <- loadSource grammarFileName
-            output $ show grammar
+            -- TODO: add flag to show internal format
+            output $ Grammar.depictGrammar grammar
         ["preprocess", grammarFileName] -> do
             grammar <- loadSource grammarFileName
-            let grammar' = Preprocessor.preprocessGrammar grammar
-            output $ show grammar'
+            let grammar' = Preprocessor.preprocessGrammarForGeneration grammar
+            -- TODO: add flag to show internal format
+            output $ Grammar.depictGrammar grammar'
         ("parse":grammarFileName:textFileName:initialParams) -> do
             grammar <- loadSource grammarFileName
+            let grammar' = Preprocessor.preprocessGrammarForParsing grammar
             text <- loadText textFileName
+            let start = getStartSymbol grammar' flags
             let initialState = Parser.constructState text initialParams
-            let finalState = Parser.parseFrom grammar initialState
+            let finalState = Parser.parseFrom grammar' start initialState
             output $ if (dumpState flags) then show finalState else formatParseResult $ Parser.obtainResult finalState
-            exitWith $ either (\msg -> ExitFailure 1) (\remaining -> ExitSuccess) $ Parser.obtainResult finalState
+            exitWith $ either (\_msg -> ExitFailure 1) (\_remaining -> ExitSuccess) $ Parser.obtainResult finalState
         ("generate":grammarFileName:initialParams) -> do
             grammar <- loadSource grammarFileName
-            let grammar' = Preprocessor.preprocessGrammar grammar
+            let grammar' = Preprocessor.preprocessGrammarForGeneration grammar
+            let start = getStartSymbol grammar' flags
             let initialState = Generator.constructState initialParams
-            let finalState = Generator.generateFrom grammar' initialState
+            let finalState = Generator.generateFrom grammar' start initialState
             output $ if (dumpState flags) then show finalState else formatGenerateResult $ Generator.obtainResult finalState
-            exitWith $ either (\msg -> ExitFailure 1) (\remaining -> ExitSuccess) $ Generator.obtainResult finalState
+            exitWith $ either (\_msg -> ExitFailure 1) (\_remaining -> ExitSuccess) $ Generator.obtainResult finalState
         _ -> usage
 
 usage = abortWith
@@ -61,6 +74,8 @@ usage = abortWith
         "    fountain {flags} generate <fountain-filename> {params}\n" ++
         "  where {flags} is any of:\n" ++
         "    --dump-state: dump the internal parse/generate state as part of output\n" ++
+        "    --start-symbol <NT>: name of the nonterminal to start parsing/generating at\n" ++
+        "      (default is the nonterminal that appears first in the grammar)\n" ++
         "    --suppress-newline: don't output a final newline after output\n" ++
         "  and {params} is a list of arguments of the form `var=value` with which\n" ++
         "    variables will be initialized in the initial parse/generate state."
@@ -73,8 +88,8 @@ loadSource fileName = do
     case Loader.parseFountain text of
         Right g -> do
             return g
-        Left error ->
-            abortWith $ show error
+        Left err ->
+            abortWith $ show err
 
 loadText fileName = do
     handle <- if fileName == "--" then return stdin else openFile fileName ReadMode

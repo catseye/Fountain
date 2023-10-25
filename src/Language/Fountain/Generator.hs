@@ -1,63 +1,110 @@
 module Language.Fountain.Generator (constructState, generateFrom, obtainResult) where
 
-import Language.Fountain.Grammar
-import Language.Fountain.Constraint
+import Data.Maybe (mapMaybe)
+
 import Language.Fountain.Store
+import Language.Fountain.Constraint
+import Language.Fountain.Grammar
 
 
 data GenState = Generating String Store
               | Failure
     deriving (Show, Ord, Eq)
 
+--
+-- Utils
+--
+
+can (Just _) = True
+can Nothing  = False
 
 genTerminal c (Generating cs a) = (Generating (c:cs) a)
+genTerminal _c Failure = Failure
 
-obtainResult :: GenState -> Either String String
-obtainResult (Generating s _) = Right s
-obtainResult Failure = Left "failure"
+--
+-- Alt choices need preconditions during generation because
+-- we need some guidance of which one to pick.
+--
+getPreCondition :: Expr -> Maybe Constraint
+getPreCondition (Seq (x:_)) = getPreCondition x
+getPreCondition (Constraint c) = Just c
+getPreCondition _ = Nothing
 
+missingPreConditions choices =
+    mapMaybe (\x -> case getPreCondition x of
+        Just _ -> Nothing
+        Nothing -> Just x
+      ) choices
+
+--
+-- Generator
+--
 
 gen :: Grammar -> GenState -> Expr -> GenState
 
-gen g st (Seq s) = genSeq g st s where
-    genSeq g st [] = st
-    genSeq g st (e : rest) =
+gen _g Failure _expr = Failure
+
+gen g state (Seq s) = genSeq state s where
+    genSeq st [] = st
+    genSeq st (e : rest) =
         case gen g st e of
             Failure -> Failure
-            st'     -> genSeq g st' rest
+            st'     -> genSeq st' rest
 
--- FIXME: this should look at all the alts and
--- each of those alts should start with pre-conditions
--- and we should narrow which one down based on that.
--- Then pick randomly.
-gen g st (Alt s) = genAlt g st s where
-    genAlt g st [] = Failure
-    genAlt g st (e : rest) =
+-- Hello, Mrs Backtracking Alternation!
+gen g state (Alt True choices) = genAlt state choices where
+    -- Note, we try all the possibilities here, regardless of their preconditions.
+    genAlt _st [] = Failure
+    genAlt st (e : rest) =
         case gen g st e of
-            Failure -> genAlt g st rest
+            Failure -> genAlt st rest
             st'     -> st'
 
-gen g state (Loop l postconditions) =
-    genLoop g state l (assertThereAreSome postconditions) where
-        genLoop g state e postconditions =
-            case gen g state e of
-                Failure -> state
-                state'@(Generating str store)  ->
-                    case checkLimit postconditions store of
-                        -- All postconditions met, terminate the loop.
-                        Just store'  -> Generating str store'
-                        -- Not all postconditions met -- go 'round again
-                        Nothing      -> genLoop g state' e postconditions
-        assertThereAreSome [] = error "No postconditions defined for this Loop"
-        assertThereAreSome pcs = pcs
-        checkLimit [] st = Just st
-        checkLimit (c:cs) st =
-            case applyConstraint c st of
-                Nothing -> Nothing
-                Just st' -> checkLimit cs st'
+-- Hello, Mrs Non-Backtracking Alternation!
+gen g state@(Generating _str store) (Alt False choices) =
+    -- We look at all the choices; each should start with a pre-condition
+    -- determining whether we can select it; and we should narrow down our
+    -- choices based on that.
+    case missingPreConditions choices of
+        missing@(_:_) ->
+            error ("No pre-condition present on these Alt choices: " ++ (depictExprs missing))
+        [] ->
+            let
+                preConditionedChoices = map (\x -> (getPreCondition x, x)) choices
+                isApplicableChoice (Just c, _) = can $ applyConstraint c store
+                isApplicableChoice _ = False
+                applicableChoices = filter (isApplicableChoice) preConditionedChoices
+            in
+                genAlt state applicableChoices
+            where
+                genAlt _st [] = Failure
+                -- we ignore the constraint here because it will be found and applied when we descend into e
+                genAlt st [(_, e)] = gen g st e
+                genAlt _st other =
+                    error ("Multiple pre-conditions are satisfied in Alt: " ++ (depictExprs (map (snd) other)))
 
-gen g st (Terminal c) = genTerminal c st
-gen g Failure (NonTerminal nt actuals) = Failure
+
+gen _g _state (Loop _ []) = error "No postconditions defined for this Loop"
+gen g state (Loop l postconditions) = genLoop state l where
+    genLoop st e =
+        case gen g st e of
+            -- If the loop body fails, we should fail too.
+            Failure -> Failure
+            st'@(Generating str store)  ->
+                case checkLimit postconditions store of
+                    -- All postconditions met, terminate the loop.  (Note that we throw away
+                    -- the result of applying the constraints here, because they will follow
+                    -- this loop directly, and we don't want to apply them twice.)
+                    Just _       -> Generating str (trace ("Done " ++ (show postconditions)) store)
+                    -- Not all postconditions met -- go 'round again
+                    Nothing      -> genLoop st' e
+    checkLimit [] st = Just st
+    checkLimit (c:cs) st =
+        case applyConstraint c st of
+            Nothing -> Nothing
+            Just st' -> checkLimit cs st'
+
+gen _g st (Terminal c) = genTerminal c st
 gen g (Generating text store) (NonTerminal nt actuals) =
     let
         formals = getFormals nt g
@@ -74,61 +121,26 @@ gen g (Generating text store) (NonTerminal nt actuals) =
             Failure ->
                 Failure
 
-gen g st@(Generating text store) (Constraint cstr) =
+gen _g (Generating text store) (Constraint cstr) =
     case applyConstraint cstr store of
         Just store' ->
-            Generating text store'
+            Generating text (trace ("OK " ++ depictConstraint cstr) store')
         Nothing ->
             Failure
 
-applyConstraint :: Constraint -> Store -> Maybe Store
-applyConstraint (UnifyConst v i) st =
-    case fetch v st of
-        Just value ->
-            if value == i then Just st else Nothing
-        Nothing ->
-            Just $ insert v i st
-applyConstraint (UnifyVar v w) st =
-    case (fetch v st, fetch w st) of
-        (Just vValue, Just wValue) ->
-            if vValue == wValue then Just st else Nothing
-        (Just vValue, Nothing) ->
-            Just $ insert w vValue st
-        (Nothing, Just wValue) ->
-            Just $ insert v wValue st
-        (Nothing, Nothing) ->
-            Just st
-applyConstraint (Inc v e) st =
-    case ceval e st of
-        Just delta ->
-            Just $ update (\i -> Just (i + delta)) v st
-        Nothing ->
-            Nothing
-applyConstraint (Dec v e) st =
-    case ceval e st of
-        Just delta ->
-            Just $ update (\i -> Just (i - delta)) v st
-        Nothing ->
-            Nothing
-applyConstraint (GreaterThan v e) st =
-    case (fetch v st, ceval e st) of
-        (Just value, Just target) ->
-            if value > target then Just st else Nothing
-        _ ->
-            Nothing
-applyConstraint (LessThan v e) st =
-    case (fetch v st, ceval e st) of
-        (Just value, Just target) ->
-            if value < target then Just st else Nothing
-        _ ->
-            Nothing
-
+--
+-- Usage interface
+--
 
 constructState :: [String] -> GenState
-constructState initialParams = Generating "" (constructStore initialParams)
+constructState initialParams = Generating "" $ constructStore initialParams
 
-generateFrom :: Grammar -> GenState ->  GenState
-generateFrom g state = revgen $ gen g state (production (startSymbol g) g)
+generateFrom :: Grammar -> String -> GenState ->  GenState
+generateFrom g start state = revgen $ gen g state (production start g)
     where
         revgen (Generating s a) = Generating (reverse s) a
         revgen other = other
+
+obtainResult :: GenState -> Either String String
+obtainResult (Generating s _) = Right s
+obtainResult Failure = Left "failure"

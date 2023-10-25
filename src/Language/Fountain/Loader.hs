@@ -18,10 +18,11 @@ fountain = do
 prod = do
     nt <- capWord
     p <- option [] formals
+    bt <- option False (do { keyword "(*)"; return True })
     keyword "::="
-    e <- expr0
+    e <- expr0 bt
     keyword ";"
-    return (nt, p, e)
+    return Production{ ntname=nt, params=p, backtrackable=bt, constituents=e }
 
 formals = do
     keyword "<"
@@ -29,35 +30,58 @@ formals = do
     keyword ">"
     return v
 
-expr0 = do
-    es <- sepBy (expr1) (keyword "|")
-    return $ Alt es
+expr0 bt = do
+    es <- sepBy (expr1 bt) (keyword "|")
+    return $ Alt bt es
 
-expr1 = do
-    es <- many1 term
-    return $ Seq es
+expr1 bt = do
+    es <- many1 $ term bt
+    return $ Seq $ flattenseq es where
+        flattenseq [] = []
+        flattenseq (s:ss) = case s of
+            -- Note that xs will always be flat already
+            Seq xs -> xs ++ (flattenseq ss)
+            _      -> (s:flattenseq ss)
 
-term = (try parenExpr) <|> (try loopExpr) <|> (try constraintExpr) <|> (try terminal) <|> nonterminal
+term bt = (try $ parenExpr bt) <|> (try $ loopExpr bt) <|> (try $ constraintExpr bt) <|> (try $ terminal bt) <|> nonterminal bt
 
-parenExpr = do
+parenExpr bt = do
     keyword "("
-    e <- expr0
+    e <- expr0 bt
     keyword ")"
     return e
 
-loopExpr = do
+loopExpr bt = do
     keyword "{"
-    e <- expr0
+    e <- expr0 bt
     keyword "}"
     return $ Loop e []
 
-constraintExpr = do
+constraintExpr _bt = do
     keyword "<."
     c <- constrainer
     keyword ".>"
     return $ Constraint $ c
 
-constrainer = (try unifyConst) <|> (try unifyVar) <|> (try inc) <|> (try dec) <|> (try gt) <|> (try lt)
+terminal _bt = do
+    s <- quotedString <|> charlit
+    case s of
+        [c] -> return $ Terminal $ c
+        _ -> return $ Seq $ map (\c -> Terminal c) s
+
+nonterminal _bt = do
+    s <- capWord
+    a <- option [] actuals
+    return $ NonTerminal s a
+    where
+        actuals = do
+            keyword "<"
+            v <- sepBy (variable) (keyword ",")
+            keyword ">"
+            return v
+
+constrainer = (try unifyConst) <|> (try unifyVar) <|> (try inc) <|> (try dec) <|>
+                (try gte) <|> (try gt) <|> (try lte) <|> (try lt) <|> (try both)
 
 unifyConst = do
     v <- variable
@@ -83,17 +107,37 @@ dec = do
     e <- cexpr
     return $ Dec v e
 
+gte = do
+    v <- variable
+    keyword ">="
+    e <- cexpr
+    return $ GreaterThanOrEqual v e
+
 gt = do
     v <- variable
     keyword ">"
     e <- cexpr
     return $ GreaterThan v e
 
+lte = do
+    v <- variable
+    keyword "<="
+    e <- cexpr
+    return $ LessThanOrEqual v e
+
 lt = do
     v <- variable
     keyword "<"
     e <- cexpr
     return $ LessThan v e
+
+both = do
+    -- TODO: this syntax is awful, change it please
+    keyword "&&"
+    c1 <- constrainer
+    keyword ","
+    c2 <- constrainer
+    return $ Both c1 c2
 
 variable = do
     s <- lowWord
@@ -109,29 +153,12 @@ cVarExpr = do
     v <- variable
     return $ CVar v
 
-terminal = do
-    s <- quotedString <|> charlit
-    case s of
-        [c] -> return $ Terminal $ c
-        _ -> return $ Seq $ map (\c -> Terminal c) s
-
-nonterminal = do
-    s <- capWord
-    a <- option [] actuals
-    return $ NonTerminal s a
-
-actuals = do
-    keyword "<"
-    v <- sepBy (variable) (keyword ",")
-    keyword ">"
-    return v
-
 --
 -- Low level: Concrete things
 --
 
 keyword s = do
-    try (string s)
+    _ <- try (string s)
     fspaces
 
 capWord = do
@@ -155,18 +182,18 @@ intlit = do
 
 leadingMinus :: Parser Integer
 leadingMinus = do
-    char '-'
+    _ <- char '-'
     return (-1)
 
 quotedString = do
-    char '"'
+    _ <- char '"'
     s <- many $ satisfy (\x -> x /= '"')
-    char '"'
+    _ <- char '"'
     fspaces
     return s
 
 charlit = do
-    char '#'
+    _ <- char '#'
     c <- digit
     cs <- many digit
     fspaces
@@ -174,13 +201,13 @@ charlit = do
 
 fspaces = do
     spaces
-    many comment
+    _ <- many comment
     return ()
 
 comment = do
-    string "//"
-    many $ satisfy (\x -> x /= '\n')
-    (do { char '\n'; return ()} <|> eof)
+    _ <- string "//"
+    _ <- many $ satisfy (\x -> x /= '\n')
+    (do { _ <- char '\n'; return ()} <|> eof)
     fspaces
     return ()
 
@@ -194,3 +221,4 @@ parseFountain text = parse fountain "" text
 parseConstConstraint :: String -> (Variable, Integer)
 parseConstConstraint text = case parse unifyConst "" text of
     Right (UnifyConst v i) -> (v, i)
+    v -> error ("parseConstConstraint: " ++ show v)

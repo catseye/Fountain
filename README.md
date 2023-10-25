@@ -1,6 +1,8 @@
 Fountain
 ========
 
+_Version 0.4_
+
 Cat's Eye Technologies' **Fountain** is a work-in-progress grammar formalism
 capable of expressing context-sensitive languages (CSLs), and supporting both
 efficient parsing _and_ efficient generation of strings conforming to those
@@ -69,24 +71,17 @@ TODO
 
 ### Semantics
 
-*   Check constraints on all branches of each alternation, select pseudorandomly
-    (and efficiently) from the set of alternatives which are permissible.
 *   Params on top-level Goal mean those values must be provided from environment.
 
 ### Implementation
 
-*   Flatten nested Seq's and Alt's in the AST (to support the
-    alternative-selection strategy described above).
-*   Command-line option to start at a different goal symbol.
-*   Pretty-printer, so that the implementation tests can be more robust.
-
-### Documentation
-
-*   Test cases for backtracking during parsing.
-*   Test cases for backtracking during generation.
+*   Improved pretty-printing (coalesced terminals, no unnecessary parens, etc.)
 
 ### Aspirational
 
+*   Allow "fuel" to be tracked, to ensure the storage is bounded
+    linearly to the amount of input.  This aims to ensure that the
+    grammar is contained within PSPACE.
 *   Use Fountain's own parsing facilities to parse the Fountain
     grammar description!  It's not entirely clear to me how much
     of it it could handle.  But it would be close to "writing
@@ -97,6 +92,48 @@ TODO
 
 History
 -------
+
+### 0.4
+
+#### Language
+
+Fountain now distinguishes between productions that may backtrack and
+ones that may not, in both parsing and generation.
+
+By default, backtracking is not permitted.  Productions may be marked
+with `(*)` to indicate that backtracking is permitted when processing
+alternations in that production.
+
+When backtracking is not permitted, every choice in an alternation
+must start with a constraint.  Exactly zero or one of those constraints
+must be satisfied in a given state.  If none are, that is a failure (and
+if this failure happens in an enclosing context where backtracking *is*
+permitted, then backtracking will occur in that context).  If more than
+one are, the process will abort with an error message.
+
+It should be noted that the implementation of backtracking currently has
+limitations.  The scope of a "choice point" that can be backtracked to
+is limited to the alternation expression in which it occurs; a failure
+that occurs after (that is, outside of) this expression will not cause
+a backtrack to occur.  In particular, backtracking does not work at all
+as you might expect inside a loop.  There is a way to write recursive
+productions in a "tail recursive" manner such that they do backtrack,
+but this style of writing the grammar may not be entirely natural.
+
+Also:
+
+Greater than or equal and less than or equal constraints.
+
+"Both" combinator on constraints (which really needs reworking).
+
+#### Implementation
+
+The `--start-symbol` option may now be passed to `fountain` to
+cause it to start parsing or generating at the named non-terminal.
+
+Implementation improvements such as better flattening of the AST
+representing the grammar during its parsing, and pretty-printing
+fragments of the AST (albeit crudely) when displaying them.
 
 ### 0.3
 
